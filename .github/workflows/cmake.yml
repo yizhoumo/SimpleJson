@@ -6,6 +6,7 @@ jobs:
   build_and_test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
@@ -22,5 +23,34 @@ jobs:
       run: cmake --build .
       working-directory: build
     - name: CTest
+      run: ctest --output-on-failure
+      working-directory: build
+
+  code_coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v1
+      with:
+        path: build/test/googletest-src
+        key: googletest-src
+    - run: mkdir build
+    - name: CMake
+      run: cmake -DCODE_COVERAGE=ON ..
+      working-directory: build
+    - name: Build
+      run: cmake --build .
+      working-directory: build
+    - name: CTest
       run: ctest
       working-directory: build
+      continue-on-error: true
+    - name: lcov
+      working-directory: build
+      run: |
+        lcov --directory . --capture -o coverage.info
+        lcov --remove coverage.info '/usr/*' '*/test/*' -o coverage.info
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/coverage.info
