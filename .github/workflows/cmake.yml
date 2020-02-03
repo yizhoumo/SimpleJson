@@ -11,11 +11,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v1
-      with:
-        path: build/test/googletest-src
-        key: googletest-src
-    - run: mkdir -p build
+    - run: mkdir build
     - name: CMake
       run: cmake ..
       working-directory: build
@@ -30,11 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v1
-      with:
-        path: build/test/googletest-src
-        key: googletest-src
-    - run: mkdir -p build
+    - run: mkdir build
     - name: CMake
       run: cmake -DCODE_COVERAGE=ON ..
       working-directory: build
@@ -48,6 +40,7 @@ jobs:
     - name: lcov
       working-directory: build
       run: |
+        sudo apt-get install -y lcov
         lcov --directory . --capture -o coverage.info
         lcov --remove coverage.info '/usr/*' '*/test/*' -o coverage.info
     - uses: codecov/codecov-action@v1
