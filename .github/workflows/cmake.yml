@@ -15,7 +15,7 @@ jobs:
       with:
         path: build/test/googletest-src
         key: googletest-src
-    - run: mkdir build
+    - run: mkdir -p build
     - name: CMake
       run: cmake ..
       working-directory: build
@@ -34,7 +34,7 @@ jobs:
       with:
         path: build/test/googletest-src
         key: googletest-src
-    - run: mkdir build
+    - run: mkdir -p build
     - name: CMake
       run: cmake -DCODE_COVERAGE=ON ..
       working-directory: build
