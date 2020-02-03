@@ -21,6 +21,7 @@ bool Reader::parse(std::string_view document, Value& root) {
         skipWhitespace();
         if (_it < _document.end()) {
             _result = ParseResult::RootNotSingular;
+            root = Null();
         }
     }
 

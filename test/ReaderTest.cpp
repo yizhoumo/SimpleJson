@@ -1,66 +1,60 @@
 #include "gtest/gtest.h"
 #include "simplejson/Reader.h"
 
+#define EXPECT_PARSE_ERROR(expected, doc)      \
+    do {                                       \
+        root = Bool();                         \
+        EXPECT_FALSE(reader.parse(doc, root)); \
+        EXPECT_EQ(expected, reader.result());  \
+        EXPECT_TRUE(root.isNull());            \
+    } while (false)
+
+#define EXPECT_PARSE_BOOL(expected, doc)      \
+    do {                                      \
+        root = Null();                        \
+        EXPECT_TRUE(reader.parse(doc, root)); \
+        EXPECT_TRUE(root.isBool());           \
+        EXPECT_EQ(expected, root.asBool());   \
+    } while (false)
+
 namespace SimpleJson {
 
 class ReaderTest : public ::testing::Test {
 protected:
-    // void SetUp() override {}
-    // void TearDown() override {}
-
     Reader reader;
-    Value root = Bool();
+    Value root;
 };
 
 TEST_F(ReaderTest, ParseNull) {
+    root = Bool();
     EXPECT_TRUE(reader.parse("null", root));
-    EXPECT_EQ(ParseResult::Ok, reader.result());
-    EXPECT_TRUE(reader.good());
     EXPECT_TRUE(root.isNull());
 }
 
 TEST_F(ReaderTest, ParseTrue) {
-    root = Null();
-    EXPECT_TRUE(reader.parse("true", root));
-    EXPECT_TRUE(reader.good());
-    EXPECT_TRUE(root.isBool());
-    EXPECT_EQ(true, root.asBool());
+    EXPECT_PARSE_BOOL(true, "true");
+    EXPECT_PARSE_BOOL(true, " true ");
 }
 
 TEST_F(ReaderTest, ParseFalse) {
-    root = Null();
-    EXPECT_TRUE(reader.parse("false", root));
-    EXPECT_TRUE(reader.good());
-    EXPECT_TRUE(root.isBool());
-    EXPECT_EQ(false, root.asBool());
+    EXPECT_PARSE_BOOL(false, "false");
+    EXPECT_PARSE_BOOL(false, "\tfalse\n");
 }
 
 TEST_F(ReaderTest, ParseExpectValue) {
-    EXPECT_FALSE(reader.parse("", root));
-    EXPECT_EQ(ParseResult::ExpectValue, reader.result());
-    EXPECT_TRUE(root.isNull());
-
-    root = Bool();
-    EXPECT_FALSE(reader.parse(" ", root));
-    EXPECT_EQ(ParseResult::ExpectValue, reader.result());
-    EXPECT_TRUE(root.isNull());
+    EXPECT_PARSE_ERROR(ParseResult::ExpectValue, "");
+    EXPECT_PARSE_ERROR(ParseResult::ExpectValue, " ");
+    EXPECT_PARSE_ERROR(ParseResult::ExpectValue, "\t \n");
 }
 
 TEST_F(ReaderTest, ParseInvalidValue) {
-    EXPECT_FALSE(reader.parse("nul", root));
-    EXPECT_EQ(ParseResult::InvalidValue, reader.result());
-    EXPECT_TRUE(root.isNull());
-
-    root = Bool();
-    EXPECT_FALSE(reader.parse("?", root));
-    EXPECT_EQ(ParseResult::InvalidValue, reader.result());
-    EXPECT_TRUE(root.isNull());
+    EXPECT_PARSE_ERROR(ParseResult::InvalidValue, "nul");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidValue, "?");
 }
 
 TEST_F(ReaderTest, ParseRootNotSingular) {
-    EXPECT_FALSE(reader.parse("null false", root));
-    EXPECT_EQ(ParseResult::RootNotSingular, reader.result());
-    EXPECT_TRUE(root.isNull());
+    EXPECT_PARSE_ERROR(ParseResult::RootNotSingular, "null false");
+    EXPECT_PARSE_ERROR(ParseResult::RootNotSingular, "true null");
 }
 
 }  // namespace SimpleJson

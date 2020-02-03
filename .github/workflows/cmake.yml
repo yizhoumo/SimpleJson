@@ -37,10 +37,11 @@ jobs:
       run: ctest
       working-directory: build
       continue-on-error: true
-    - name: lcov
+    - name: Install lcov
+      run: sudo apt-get install -qy lcov
+    - name: Run lcov
       working-directory: build
       run: |
-        sudo apt-get install -y lcov
         lcov --directory . --capture -o coverage.info
         lcov --remove coverage.info '/usr/*' '*/test/*' -o coverage.info
     - uses: codecov/codecov-action@v1
