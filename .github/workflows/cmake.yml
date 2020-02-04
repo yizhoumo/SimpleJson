@@ -38,7 +38,9 @@ jobs:
       working-directory: build
       continue-on-error: true
     - name: Install lcov
-      run: sudo apt-get install -qy lcov
+      run: |
+        sudo apt-get -qy update
+        sudo apt-get -qy install lcov
     - name: Run lcov
       working-directory: build
       run: |

@@ -7,7 +7,13 @@
 
 namespace SimpleJson {
 
-enum class ParseResult { Ok, ExpectValue, InvalidValue, RootNotSingular };
+enum class ParseResult {
+    Ok,
+    ExpectValue,
+    InvalidValue,
+    RootNotSingular,
+    NumberTooBig
+};
 
 class Reader {
 public:
@@ -19,6 +25,7 @@ private:
     void skipWhitespace();
     Value parseValue();
     Value parseLiteral(std::string_view literal, Value value);
+    Value parseNumber();
     Value error(ParseResult errorType);
 
 private:

@@ -21,7 +21,8 @@ endif ()
 include_directories(include)
 add_subdirectory(src)
 
-if (BUILD_TESTS)
+# Build tests only if this is the top-level project
+if (BUILD_TESTS AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
     enable_testing()
     add_subdirectory(test)
 endif ()

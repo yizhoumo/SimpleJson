@@ -1,4 +1,4 @@
-add_library(simplejson_lib
+add_library(simplejson
         Reader.cpp
         Value.cpp
         )

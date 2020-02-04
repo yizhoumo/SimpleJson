@@ -26,8 +26,12 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL)
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(simplejson_test ReaderTest.cpp ValueTest.cpp)
-target_link_libraries(simplejson_test simplejson_lib gtest_main)
+add_executable(simplejson_test
+        ReaderTest.cpp
+        ValueTest.cpp
+        TestHelper.cpp
+        )
+target_link_libraries(simplejson_test simplejson gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(simplejson_test)
