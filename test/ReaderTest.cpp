@@ -9,13 +9,12 @@ namespace SimpleJson {
 class ReaderTest : public testing::Test {
 protected:
     Reader reader;
-    Value root;
 };
 
 TEST_F(ReaderTest, ParseNull) {
-    root = Bool();
-    EXPECT_TRUE(reader.parse("null", root));
-    EXPECT_TRUE(root.isNull());
+    auto value = Value(false);
+    EXPECT_TRUE(reader.parse("null", value));
+    EXPECT_EQ(ValueType::Null, value.type());
 }
 
 TEST_F(ReaderTest, ParseExpectValue) {

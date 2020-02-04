@@ -1,3 +1,5 @@
+#include "ValueTest.h"
+
 #include "TestHelper.h"
 #include "gtest/gtest.h"
 #include "simplejson/Value.h"
@@ -12,7 +14,7 @@ TEST(ValueTest, TypeNull) {
     val = Value();
     EXPECT_EQ(ValueType::Null, val.type());
 
-    val = Null();
+    val = Value(Null());
     EXPECT_EQ(ValueType::Null, val.type());
 }
 
@@ -22,56 +24,57 @@ TEST(ValueTest, TypeBool) {
     EXPECT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(false, val.asBool());
 
-    val = true;
+    val = Value(true);
     EXPECT_TRUE(val.isBool());
     EXPECT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(true, val.asBool());
 }
 
-TEST(ValueTest, TypeNumberInt) {
+TEST(ValueTest, TypeNumber) {
     Value val(ValueType::Number);
     EXPECT_TRUE(val.isNumber());
     EXPECT_EQ(ValueType::Number, val.type());
     EXPECT_EQ(0, val.asNumber());
+}
 
-    auto x = 12345;
-    val = (int)++x;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(x, val.asNumber());
+TEST(ValueTest, TypeNumberInt) {
+    // signed
+    EXPECT_VALUE_NUMBER(0);
+    EXPECT_VALUE_NUMBER(1);
+    EXPECT_VALUE_NUMBER(-1);
+    EXPECT_VALUE_NUMBER(0L);
+    EXPECT_VALUE_NUMBER(1L);
+    EXPECT_VALUE_NUMBER(-1L);
+    EXPECT_VALUE_NUMBER(0LL);
+    EXPECT_VALUE_NUMBER(1LL);
+    EXPECT_VALUE_NUMBER(-1LL);
 
-    val = (unsigned)++x;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(x, val.asNumber());
-
-    val = (intmax_t)++x;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(x, val.asNumber());
-
-    val = (uintmax_t)++x;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(x, val.asNumber());
+    // unsigned
+    EXPECT_VALUE_NUMBER(0U);
+    EXPECT_VALUE_NUMBER(1U);
+    EXPECT_VALUE_NUMBER(0UL);
+    EXPECT_VALUE_NUMBER(1UL);
+    EXPECT_VALUE_NUMBER(0ULL);
+    EXPECT_VALUE_NUMBER(1ULL);
 }
 
 TEST(ValueTest, TypeNumberReal) {
-    Value val = 0.0;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(0.0, val.asNumber());
+    EXPECT_VALUE_NUMBER(0.0);
+    EXPECT_VALUE_NUMBER(1.0);
+    EXPECT_VALUE_NUMBER(-1.0);
+    EXPECT_VALUE_NUMBER(1.5);
+    EXPECT_VALUE_NUMBER(-1.5);
 
-    val = 1.0;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(1.0, val.asNumber());
+    EXPECT_VALUE_NUMBER(0.0f);
+    EXPECT_VALUE_NUMBER(1.0f);
+    EXPECT_VALUE_NUMBER(-1.0f);
+    EXPECT_VALUE_NUMBER(1.5f);
+    EXPECT_VALUE_NUMBER(-1.5f);
 
-    val = 1.0f;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(1.0f, val.asNumber());
-
-    val = DBL_MAX;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(DBL_MAX, val.asNumber());
-
-    val = DBL_MIN;
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(DBL_MIN, val.asNumber());
+    EXPECT_VALUE_NUMBER(DBL_MAX);
+    EXPECT_VALUE_NUMBER(-DBL_MAX);
+    EXPECT_VALUE_NUMBER(DBL_MIN);
+    EXPECT_VALUE_NUMBER(-DBL_MIN);
 }
 
 }  // namespace SimpleJson

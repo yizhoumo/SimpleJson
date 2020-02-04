@@ -22,13 +22,15 @@ class Value {
 public:
     // ctor
     explicit Value(ValueType type);
-    Value(Null val = Null()) : _type(ValueType::Null), _data(val) {}
-    Value(Bool val) : _type(ValueType::Bool), _data(val) {}
-    Value(Number val) : _type(ValueType::Number), _data(val) {}
+    explicit Value(Null val = Null()) : _type(ValueType::Null), _data(val) {}
+    explicit Value(Bool val) : _type(ValueType::Bool), _data(val) {}
+    explicit Value(Number val) : _type(ValueType::Number), _data(val) {}
     template <typename Integer,
               typename = std::enable_if_t<std::is_integral_v<Integer>>>
-    Value(Integer val) : _type(ValueType::Number), _data(Number(val)) {}
-    Value(String val) : _type(ValueType::String), _data(std::move(val)) {}
+    explicit Value(Integer val)
+        : _type(ValueType::Number), _data(Number(val)) {}
+    explicit Value(String val)
+        : _type(ValueType::String), _data(std::move(val)) {}
     // Value(Array val) : _type(ValueType::Array), _data(std::move(val)) {}
     // Value(Object val) : _type(ValueType::Object), _data(std::move(val)) {}
 

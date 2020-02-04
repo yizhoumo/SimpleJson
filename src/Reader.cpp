@@ -51,11 +51,11 @@ Value Reader::parseValue() {
 
     switch (*_pCur) {
         case 'n':
-            return parseLiteral("null", Null());
+            return parseLiteral("null", Value());
         case 't':
-            return parseLiteral("true", Bool(true));
+            return parseLiteral("true", Value(true));
         case 'f':
-            return parseLiteral("false", Bool(false));
+            return parseLiteral("false", Value(false));
         default:
             return parseNumber();
     }
@@ -95,13 +95,13 @@ Value Reader::parseNumber() {
 
     // success
     _pCur = endNumber;
-    return value;
+    return Value(value);
 }
 
 Value Reader::error(ParseResult errorType) {
     assert(errorType != ParseResult::Ok);
     _result = errorType;
-    return {};
+    return Value();
 }
 
 }  // namespace SimpleJson
