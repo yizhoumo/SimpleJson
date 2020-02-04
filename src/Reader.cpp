@@ -11,12 +11,14 @@ static const char* validateNumber(const char* str);
 namespace SimpleJson {
 
 /// JSON = ws value ws
-bool Reader::parse(std::string_view document, Value& root) {
-    // set context
-    _document = document;
-    _it = _document.begin();
+bool Reader::parse(const char* pDocument, Value& root) {
+    if (!pDocument || *pDocument == 0) {
+        root = error(ParseResult::ExpectValue);
+        return false;
+    }
 
-    // reset result
+    // set context
+    _pCur = pDocument;
     _result = ParseResult::Ok;
 
     // parsing
@@ -24,30 +26,30 @@ bool Reader::parse(std::string_view document, Value& root) {
     root = parseValue();
     if (good()) {
         skipWhitespace();
-        if (_it < _document.end()) {
-            _result = ParseResult::RootNotSingular;
-            root = Null();
+        if (*_pCur) {
+            root = error(ParseResult::RootNotSingular);
         }
     }
 
+    _pCur = nullptr;
     return good();
 }
 
 void Reader::skipWhitespace() {
-    assert(_it <= _document.end());
-    while (_it < _document.end() && std::isspace(*_it)) {
-        ++_it;
+    assert(_pCur != nullptr);
+    while (std::isspace(*_pCur)) {
+        ++_pCur;
     }
 }
 
 /// value = null / true / false / number
 Value Reader::parseValue() {
-    assert(_it <= _document.end());
-    if (_it >= _document.end()) {
+    assert(_pCur != nullptr);
+    if (*_pCur == 0) {
         return error(ParseResult::ExpectValue);
     }
 
-    switch (*_it) {
+    switch (*_pCur) {
         case 'n':
             return parseLiteral("null", Null());
         case 't':
@@ -60,30 +62,31 @@ Value Reader::parseValue() {
 }
 
 Value Reader::parseLiteral(std::string_view literal, Value value) {
-    assert(_it < _document.end());
+    assert(_pCur != nullptr);
     assert(!literal.empty());
-    assert(*_it == literal[0]);
+    assert(*_pCur == literal[0]);
 
     for (const char c : literal) {
-        if (_it >= _document.end() || *_it != c) {
+        if (*_pCur != c) {
             return error(ParseResult::InvalidValue);
         }
-        ++_it;
+        ++_pCur;
     }
     return value;
 }
 
 /// number = [ "-" ] int [ frac ] [ exp ]
 Value Reader::parseNumber() {
-    assert(_it < _document.end());
+    assert(_pCur != nullptr);
+    assert(*_pCur);
 
-    const char* endNumber = validateNumber(_it);
-    if (endNumber == _it) {
+    const char* endNumber = validateNumber(_pCur);
+    if (endNumber == _pCur) {
         return error(ParseResult::InvalidValue);
     }
 
-    // TODO: _it might be not null-terminated!
-    const double value = std::strtod(_it, nullptr);
+    // parse
+    const double value = std::strtod(_pCur, nullptr);
 
     // overflow
     if (value == HUGE_VAL || value == -HUGE_VAL) {
@@ -91,7 +94,7 @@ Value Reader::parseNumber() {
     }
 
     // success
-    _it = endNumber;
+    _pCur = endNumber;
     return value;
 }
 

@@ -17,7 +17,10 @@ enum class ParseResult {
 
 class Reader {
 public:
-    bool parse(std::string_view document, Value& root);
+    bool parse(const char* pDocument, Value& root);
+    bool parse(const std::string& document, Value& root) {
+        return parse(document.data(), root);
+    }
     bool good() const { return _result == ParseResult::Ok; }
     ParseResult result() const { return _result; }
 
@@ -29,11 +32,10 @@ private:
     Value error(ParseResult errorType);
 
 private:
-    // Context, valid only during parsing
-    std::string_view _document;
-    std::string_view::const_iterator _it;
+    // Current location of document, valid only during parsing
+    const char* _pCur = nullptr;
     // Result of last round of parsing
-    ParseResult _result;
+    ParseResult _result = ParseResult::Ok;
 };
 
 }  // namespace SimpleJson
