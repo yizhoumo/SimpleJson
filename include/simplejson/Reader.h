@@ -12,7 +12,7 @@ enum class ParseResult {
     ExpectValue,
     InvalidValue,
     RootNotSingular,
-    NumberTooBig
+    NumberOverflow
 };
 
 class Reader {
@@ -29,6 +29,8 @@ private:
     Value parseValue();
     Value parseLiteral(std::string_view literal, Value value);
     Value parseNumber();
+    Value parseInteger(const char* numberEnd);
+    Value parseReal(const char* numberEnd);
     Value error(ParseResult errorType);
 
 private:

@@ -30,51 +30,78 @@ TEST(ValueTest, TypeBool) {
     EXPECT_EQ(true, val.asBool());
 }
 
-TEST(ValueTest, TypeNumber) {
-    Value val(ValueType::Number);
-    EXPECT_TRUE(val.isNumber());
-    EXPECT_EQ(ValueType::Number, val.type());
-    EXPECT_EQ(0, val.asNumber());
+TEST(ValueTest, TypeInteger) {
+    Value val(ValueType::Integer);
+    EXPECT_TRUE(val.isInteger());
+    EXPECT_EQ(ValueType::Integer, val.type());
+    EXPECT_EQ(0, val.asInteger());
 }
 
-TEST(ValueTest, TypeNumberInt) {
-    // signed
-    EXPECT_VALUE_NUMBER(0);
-    EXPECT_VALUE_NUMBER(1);
-    EXPECT_VALUE_NUMBER(-1);
-    EXPECT_VALUE_NUMBER(0L);
-    EXPECT_VALUE_NUMBER(1L);
-    EXPECT_VALUE_NUMBER(-1L);
-    EXPECT_VALUE_NUMBER(0LL);
-    EXPECT_VALUE_NUMBER(1LL);
-    EXPECT_VALUE_NUMBER(-1LL);
+TEST(ValueTest, TypeIntegerSigned) {
+    // signed int
+    EXPECT_VALUE_INTEGER(0);
+    EXPECT_VALUE_INTEGER(1);
+    EXPECT_VALUE_INTEGER(-1);
+    EXPECT_VALUE_INTEGER(INT_MAX);
+    EXPECT_VALUE_INTEGER(INT_MIN);
 
-    // unsigned
-    EXPECT_VALUE_NUMBER(0U);
-    EXPECT_VALUE_NUMBER(1U);
-    EXPECT_VALUE_NUMBER(0UL);
-    EXPECT_VALUE_NUMBER(1UL);
-    EXPECT_VALUE_NUMBER(0ULL);
-    EXPECT_VALUE_NUMBER(1ULL);
+    // signed long
+    EXPECT_VALUE_INTEGER(0L);
+    EXPECT_VALUE_INTEGER(1L);
+    EXPECT_VALUE_INTEGER(-1L);
+    EXPECT_VALUE_INTEGER(LONG_MAX);
+    EXPECT_VALUE_INTEGER(LONG_MIN);
+
+    // signed long long
+    EXPECT_VALUE_INTEGER(0LL);
+    EXPECT_VALUE_INTEGER(1LL);
+    EXPECT_VALUE_INTEGER(-1LL);
+    EXPECT_VALUE_INTEGER(LLONG_MAX);
+    EXPECT_VALUE_INTEGER(LLONG_MIN);
 }
 
-TEST(ValueTest, TypeNumberReal) {
-    EXPECT_VALUE_NUMBER(0.0);
-    EXPECT_VALUE_NUMBER(1.0);
-    EXPECT_VALUE_NUMBER(-1.0);
-    EXPECT_VALUE_NUMBER(1.5);
-    EXPECT_VALUE_NUMBER(-1.5);
+TEST(ValueTest, TypeIntegerUnsigned) {
+    // unsigned int
+    EXPECT_VALUE_INTEGER(0U);
+    EXPECT_VALUE_INTEGER(1U);
+    EXPECT_VALUE_INTEGER(UINT_MAX);
 
-    EXPECT_VALUE_NUMBER(0.0f);
-    EXPECT_VALUE_NUMBER(1.0f);
-    EXPECT_VALUE_NUMBER(-1.0f);
-    EXPECT_VALUE_NUMBER(1.5f);
-    EXPECT_VALUE_NUMBER(-1.5f);
+    // unsigned long
+    EXPECT_VALUE_INTEGER(0UL);
+    EXPECT_VALUE_INTEGER(1UL);
+    EXPECT_VALUE_INTEGER(ULONG_MAX);
 
-    EXPECT_VALUE_NUMBER(DBL_MAX);
-    EXPECT_VALUE_NUMBER(-DBL_MAX);
-    EXPECT_VALUE_NUMBER(DBL_MIN);
-    EXPECT_VALUE_NUMBER(-DBL_MIN);
+    // unsigned long long
+    EXPECT_VALUE_INTEGER(0ULL);
+    EXPECT_VALUE_INTEGER(1ULL);
+    EXPECT_VALUE_INTEGER(ULLONG_MAX);
+}
+
+TEST(ValueTest, TypeReal) {
+    Value val(ValueType::Real);
+    EXPECT_TRUE(val.isReal());
+    EXPECT_EQ(ValueType::Real, val.type());
+    EXPECT_EQ(0.0, val.asReal());
+
+    EXPECT_VALUE_REAL(0.0);
+    EXPECT_VALUE_REAL(1.0);
+    EXPECT_VALUE_REAL(-1.0);
+    EXPECT_VALUE_REAL(1.5);
+    EXPECT_VALUE_REAL(-1.5);
+    EXPECT_VALUE_REAL(DBL_MAX);
+    EXPECT_VALUE_REAL(-DBL_MAX);
+    EXPECT_VALUE_REAL(DBL_MIN);
+    EXPECT_VALUE_REAL(-DBL_MIN);
+
+    EXPECT_VALUE_REAL(0.0f);
+    EXPECT_VALUE_REAL(1.0f);
+    EXPECT_VALUE_REAL(-1.0f);
+    EXPECT_VALUE_REAL(1.5f);
+    EXPECT_VALUE_REAL(-1.5f);
+    EXPECT_VALUE_REAL(FLT_MAX);
+    EXPECT_VALUE_REAL(-FLT_MAX);
+    EXPECT_VALUE_REAL(FLT_MIN);
+    EXPECT_VALUE_REAL(-FLT_MIN);
 }
 
 }  // namespace SimpleJson
