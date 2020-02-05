@@ -110,4 +110,23 @@ TEST(ValueTest, TypeReal) {
     EXPECT_VALUE_REAL(-FLT_MIN);
 }
 
+TEST(ValueTest, TypeString) {
+    Value val(ValueType::String);
+    EXPECT_TRUE(val.isString());
+    EXPECT_EQ(ValueType::String, val.type());
+    EXPECT_EQ("", val.asString());
+
+    std::string str = "hello";
+    val = Value(str);
+    EXPECT_TRUE(val.isString());
+    EXPECT_EQ(ValueType::String, val.type());
+    EXPECT_EQ(str, val.asString());
+
+    str = "world";
+    val = Value(str.data());
+    EXPECT_TRUE(val.isString());
+    EXPECT_EQ(ValueType::String, val.type());
+    EXPECT_EQ(str, val.asString());
+}
+
 }  // namespace SimpleJson

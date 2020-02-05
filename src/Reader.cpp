@@ -45,20 +45,27 @@ void Reader::skipWhitespace() {
     }
 }
 
-/// value = null / true / false / number
+Value Reader::error(const ParseResult errorType) {
+    assert(errorType != ParseResult::Ok);
+    _result = errorType;
+    return Value();
+}
+
+/// value = null / true / false / number / string
 Value Reader::parseValue() {
     assert(_pCur != nullptr);
-    if (*_pCur == 0) {
-        return error(ParseResult::ExpectValue);
-    }
 
     switch (*_pCur) {
+        case '\0':
+            return error(ParseResult::ExpectValue);
         case 'n':
             return parseLiteral("null", Value());
         case 't':
             return parseLiteral("true", Value(true));
         case 'f':
             return parseLiteral("false", Value(false));
+        case '"':
+            return parseString();
         default:
             return parseNumber();
     }
@@ -152,10 +159,78 @@ Value Reader::parseReal(const char* const numberEnd) {
     return Value(value);
 }
 
-Value Reader::error(const ParseResult errorType) {
-    assert(errorType != ParseResult::Ok);
-    _result = errorType;
-    return Value();
+/// string = quotation-mark *char quotation-mark
+Value Reader::parseString() {
+    assert(_pCur != nullptr);
+    assert(*_pCur == '"');
+    // string = quotation-mark *char quotation-mark
+    // char = unescaped /
+    //   escape (
+    //       %x22 /          ; "    quotation mark  U+0022
+    //       %x5C /          ; \    reverse solidus U+005C
+    //       %x2F /          ; /    solidus         U+002F
+    //       %x62 /          ; b    backspace       U+0008
+    //       %x66 /          ; f    form feed       U+000C
+    //       %x6E /          ; n    line feed       U+000A
+    //       %x72 /          ; r    carriage return U+000D
+    //       %x74 /          ; t    tab             U+0009
+    //       %x75 4HEXDIG )  ; uXXXX                U+XXXX
+    // escape = %x5C         ; \    reverse solidus
+    // quotation-mark = %x22 ; "
+    // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
+
+    // quotation-mark
+    ++_pCur;
+
+    std::string value;
+    while (true) {
+        char c = *_pCur;
+        if (c == '\0') {
+            // end of document
+            return error(ParseResult::MissQuotationMark);
+        }
+        if ((unsigned char)c < '\x20') {
+            // invalid char
+            return error(ParseResult::InvalidStringChar);
+        }
+        // valid char
+        ++_pCur;
+        if (c == '"') {
+            // end of string
+            return Value(std::move(value));
+        }
+        if (c == '\\') {
+            // escape
+            switch (*_pCur) {
+                case '"':
+                case '\\':
+                case '/':
+                    c = *_pCur;
+                    break;
+                case 'b':
+                    c = '\b';
+                    break;
+                case 'f':
+                    c = '\f';
+                    break;
+                case 'n':
+                    c = '\n';
+                    break;
+                case 'r':
+                    c = '\r';
+                    break;
+                case 't':
+                    c = '\t';
+                    break;
+                default:
+                    return error(ParseResult::InvalidStringEscape);
+            }
+            // valid escape
+            ++_pCur;
+        }
+        value.push_back(c);
+    }
+    // never goto here
 }
 
 }  // namespace SimpleJson

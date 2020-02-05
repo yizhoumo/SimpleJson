@@ -34,6 +34,12 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val) {
             return out << "[RootNotSingular]";
         case SimpleJson::ParseResult::NumberOverflow:
             return out << "[NumberOverflow]";
+        case SimpleJson::ParseResult::MissQuotationMark:
+            return out << "[MissQuotationMark]";
+        case SimpleJson::ParseResult::InvalidStringEscape:
+            return out << "[InvalidStringEscape]";
+        case SimpleJson::ParseResult::InvalidStringChar:
+            return out << "[InvalidStringChar]";
     }
 
     // not possible

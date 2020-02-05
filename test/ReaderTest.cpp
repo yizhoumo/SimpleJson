@@ -114,4 +114,29 @@ TEST_F(ReaderTest, ParseNumberOverflow) {
     EXPECT_PARSE_ERROR(ParseResult::NumberOverflow, "-1e309");
 }
 
+TEST_F(ReaderTest, ParseString) {
+    EXPECT_PARSE_STRING("", R"("")");
+    EXPECT_PARSE_STRING("Hello", R"("Hello")");
+    EXPECT_PARSE_STRING("Hello\nWorld", R"("Hello\nWorld")");
+    EXPECT_PARSE_STRING("\" \\ / \b \f \n \r \t",
+                        R"("\" \\ \/ \b \f \n \r \t")");
+}
+
+TEST_F(ReaderTest, ParseMissQuotationMark) {
+    EXPECT_PARSE_ERROR(ParseResult::MissQuotationMark, R"(")");
+    EXPECT_PARSE_ERROR(ParseResult::MissQuotationMark, R"("abc)");
+}
+
+TEST_F(ReaderTest, ParseInvalidStringEscape) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\v")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\'")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\0")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\x12")");
+}
+
+TEST_F(ReaderTest, ParseInvalidStringChar) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringChar, "\"\x01\"");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidStringChar, "\"\x1F\"");
+}
+
 }  // namespace SimpleJson

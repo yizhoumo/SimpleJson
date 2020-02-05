@@ -42,4 +42,15 @@
         }                                            \
     } while (false)
 
+#define EXPECT_PARSE_STRING(expected, doc)           \
+    do {                                             \
+        Value value;                                 \
+        EXPECT_TRUE(reader.parse(doc, value));       \
+        EXPECT_EQ(ParseResult::Ok, reader.result()); \
+        EXPECT_EQ(ValueType::String, value.type());  \
+        if (value.isString()) {                      \
+            EXPECT_EQ(expected, value.asString());   \
+        }                                            \
+    } while (false)
+
 #endif  // SIMPLEJSON_READERTEST_H

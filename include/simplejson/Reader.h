@@ -12,7 +12,10 @@ enum class ParseResult {
     ExpectValue,
     InvalidValue,
     RootNotSingular,
-    NumberOverflow
+    NumberOverflow,
+    MissQuotationMark,
+    InvalidStringEscape,
+    InvalidStringChar
 };
 
 class Reader {
@@ -26,12 +29,13 @@ public:
 
 private:
     void skipWhitespace();
+    Value error(ParseResult errorType);
     Value parseValue();
     Value parseLiteral(std::string_view literal, Value value);
     Value parseNumber();
     Value parseInteger(const char* numberEnd);
     Value parseReal(const char* numberEnd);
-    Value error(ParseResult errorType);
+    Value parseString();
 
 private:
     // Current location of document, valid only during parsing
