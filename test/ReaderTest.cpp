@@ -1,5 +1,7 @@
 #include "ReaderTest.h"
 
+#include <cstdint>
+
 #include "TestHelper.h"
 #include "gtest/gtest.h"
 #include "simplejson/Reader.h"
