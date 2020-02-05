@@ -118,8 +118,10 @@ TEST_F(ReaderTest, ParseString) {
     EXPECT_PARSE_STRING("", R"("")");
     EXPECT_PARSE_STRING("Hello", R"("Hello")");
     EXPECT_PARSE_STRING("Hello\nWorld", R"("Hello\nWorld")");
-    EXPECT_PARSE_STRING("\" \\ / \b \f \n \r \t",
-                        R"("\" \\ \/ \b \f \n \r \t")");
+
+    // workaround for MSVC error: C2017
+    const auto doc = R"("\" \\ \/ \b \f \n \r \t")";
+    EXPECT_PARSE_STRING("\" \\ / \b \f \n \r \t", doc);
 }
 
 TEST_F(ReaderTest, ParseMissQuotationMark) {
