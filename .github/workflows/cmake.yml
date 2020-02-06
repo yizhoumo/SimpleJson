@@ -69,18 +69,21 @@ jobs:
       working-directory: build
       run: ctest --output-on-failure
 
-  clang_tidy:
+  clang_9:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Install clang-tidy
       run: |
         sudo apt-get -qy update
-        sudo apt-get -qy -t llvm-toolchain-bionic-6.0 install clang-tidy
+        sudo apt-get -qy install clang-9 clang-tidy-9
     - name: Create build directory
       run: cmake -E make_directory build
     - name: CMake
       working-directory: build
       run: cmake -Werror=dev -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-config=" ..
+      env:
+        CC: clang-9
+        CXX: clang++-9
     - name: Run clang-tidy and Build
       run: cmake --build build
