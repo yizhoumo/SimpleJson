@@ -58,7 +58,7 @@ jobs:
       run: cmake -E make_directory build
     - name: CMake
       working-directory: build
-      run: cmake -Werror=dev -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-config=" ..
+      run: cmake -Werror=dev ..
       env:
         CC: clang
         CXX: clang++
@@ -68,3 +68,19 @@ jobs:
     - name: CTest
       working-directory: build
       run: ctest --output-on-failure
+
+  clang_tidy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install clang-tidy
+      run: |
+        sudo apt-get -qy update
+        sudo apt-get -qy install clang-tidy
+    - name: Create build directory
+      run: cmake -E make_directory build
+    - name: CMake
+      working-directory: build
+      run: cmake -Werror=dev -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-config=" ..
+    - name: Run clang-tidy and Build
+      run: cmake --build build
