@@ -81,7 +81,7 @@ jobs:
       run: cmake -E make_directory build
     - name: CMake
       working-directory: build
-      run: cmake -Werror=dev -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-config=" ..
+      run: cmake -Werror=dev -DCMAKE_CXX_CLANG_TIDY="clang-tidy-9;-config=" ..
       env:
         CC: clang-9
         CXX: clang++-9
