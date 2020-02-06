@@ -24,8 +24,10 @@ public:
     bool parse(const std::string& document, Value& root) {
         return parse(document.data(), root);
     }
-    bool good() const { return _result == ParseResult::Ok; }
-    ParseResult result() const { return _result; }
+
+public:
+    [[nodiscard]] bool good() const { return _result == ParseResult::Ok; }
+    [[nodiscard]] ParseResult result() const { return _result; }
 
 private:
     void skipWhitespace();

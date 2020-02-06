@@ -11,7 +11,6 @@ namespace SimpleJson {
 
 enum class ValueType { Null, Bool, Integer, Real, String, Array, Object };
 
-struct Null {};
 using Bool = bool;
 using Integer = long long;
 using Real = double;
@@ -20,8 +19,8 @@ using String = std::string;
 class Value {
 public:
     // ctor
+    explicit Value() = default;
     explicit Value(ValueType type);
-    explicit Value(Null val = Null()) : _type(ValueType::Null), _data(val) {}
     explicit Value(Bool val) : _type(ValueType::Bool), _data(val) {}
 
     explicit Value(Integer val) : _type(ValueType::Integer), _data(val) {}
@@ -36,18 +35,21 @@ public:
     // TODO: copy ctor?
 
 public:
-    ValueType type() const { return _type; }
-    bool isNull() const { return _type == ValueType::Null; }
-    bool isBool() const { return _type == ValueType::Bool; }
-    bool isInteger() const { return _type == ValueType::Integer; }
-    bool isReal() const { return _type == ValueType::Real; }
-    bool isString() const { return _type == ValueType::String; }
-    Bool asBool() const { return std::get<Bool>(_data); }
-    Integer asInteger() const { return std::get<Integer>(_data); }
-    Real asReal() const { return std::get<Real>(_data); }
-    const String& asString() const { return std::get<String>(_data); }
+    [[nodiscard]] ValueType type() const { return _type; }
+    [[nodiscard]] bool isNull() const { return _type == ValueType::Null; }
+    [[nodiscard]] bool isBool() const { return _type == ValueType::Bool; }
+    [[nodiscard]] bool isInteger() const { return _type == ValueType::Integer; }
+    [[nodiscard]] bool isReal() const { return _type == ValueType::Real; }
+    [[nodiscard]] bool isString() const { return _type == ValueType::String; }
+    [[nodiscard]] Bool asBool() const { return std::get<Bool>(_data); }
+    [[nodiscard]] Integer asInteger() const { return std::get<Integer>(_data); }
+    [[nodiscard]] Real asReal() const { return std::get<Real>(_data); }
+    [[nodiscard]] const String& asString() const {
+        return std::get<String>(_data);
+    }
 
 private:
+    struct Null {};
     using Array = std::vector<Value>;
     using Object = std::unordered_map<std::string, Value>;
     using PArray = std::unique_ptr<Array>;
@@ -55,7 +57,7 @@ private:
 
 private:
     // TODO: remove `_type`, which is included in _data
-    ValueType _type;
+    ValueType _type = ValueType::Null;
     // TODO: lightweight version of String
     std::variant<Null, Bool, Integer, Real, String, PArray, PObject> _data;
 };

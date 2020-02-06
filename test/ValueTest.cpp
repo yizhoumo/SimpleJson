@@ -16,9 +16,6 @@ TEST(ValueTest, TypeNull) {
 
     val = Value();
     EXPECT_EQ(ValueType::Null, val.type());
-
-    val = Value(Null());
-    EXPECT_EQ(ValueType::Null, val.type());
 }
 
 TEST(ValueTest, TypeBool) {
@@ -92,22 +89,22 @@ TEST(ValueTest, TypeReal) {
     EXPECT_VALUE_REAL(0.0);
     EXPECT_VALUE_REAL(1.0);
     EXPECT_VALUE_REAL(-1.0);
-    EXPECT_VALUE_REAL(1.5);
-    EXPECT_VALUE_REAL(-1.5);
-    EXPECT_VALUE_REAL(DBL_MAX);
-    EXPECT_VALUE_REAL(-DBL_MAX);
-    EXPECT_VALUE_REAL(DBL_MIN);
-    EXPECT_VALUE_REAL(-DBL_MIN);
+    EXPECT_VALUE_REAL(1.5);       // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-1.5);      // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(DBL_MAX);   // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-DBL_MAX);  // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(DBL_MIN);   // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-DBL_MIN);  // NOLINT(readability-magic-numbers)
 
-    EXPECT_VALUE_REAL(0.0f);
-    EXPECT_VALUE_REAL(1.0f);
-    EXPECT_VALUE_REAL(-1.0f);
-    EXPECT_VALUE_REAL(1.5f);
-    EXPECT_VALUE_REAL(-1.5f);
-    EXPECT_VALUE_REAL(FLT_MAX);
-    EXPECT_VALUE_REAL(-FLT_MAX);
-    EXPECT_VALUE_REAL(FLT_MIN);
-    EXPECT_VALUE_REAL(-FLT_MIN);
+    EXPECT_VALUE_REAL(0.0F);
+    EXPECT_VALUE_REAL(1.0F);
+    EXPECT_VALUE_REAL(-1.0F);
+    EXPECT_VALUE_REAL(1.5F);      // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-1.5F);     // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(FLT_MAX);   // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-FLT_MAX);  // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(FLT_MIN);   // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(-FLT_MIN);  // NOLINT(readability-magic-numbers)
 }
 
 TEST(ValueTest, TypeString) {

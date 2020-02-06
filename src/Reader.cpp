@@ -1,7 +1,6 @@
 #include "simplejson/Reader.h"
 
 #include <cassert>
-#include <cctype>
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
@@ -15,7 +14,7 @@ namespace SimpleJson {
 
 /// JSON = ws value ws
 bool Reader::parse(const char* const pDocument, Value& root) {
-    if (!pDocument || *pDocument == 0) {
+    if (pDocument == nullptr || *pDocument == 0) {
         root = error(ParseResult::ExpectValue);
         return false;
     }
@@ -29,7 +28,7 @@ bool Reader::parse(const char* const pDocument, Value& root) {
     root = parseValue();
     if (good()) {
         skipWhitespace();
-        if (*_pCur) {
+        if (*_pCur != 0) {
             root = error(ParseResult::RootNotSingular);
         }
     }
@@ -38,11 +37,14 @@ bool Reader::parse(const char* const pDocument, Value& root) {
     return good();
 }
 
+/// ws = *(%x20 / %x09 / %x0A / %x0D)
 void Reader::skipWhitespace() {
     assert(_pCur != nullptr);
-    while (std::isspace(*_pCur)) {
-        ++_pCur;
+    auto p = _pCur;
+    while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') {
+        ++p;
     }
+    _pCur = p;
 }
 
 Value Reader::error(const ParseResult errorType) {
@@ -76,12 +78,14 @@ Value Reader::parseLiteral(std::string_view literal, Value value) {
     assert(!literal.empty());
     assert(*_pCur == literal[0]);
 
+    auto p = _pCur;
     for (const char c : literal) {
-        if (*_pCur != c) {
+        if (*p != c) {
             return error(ParseResult::InvalidValue);
         }
-        ++_pCur;
+        ++p;
     }
+    _pCur = p;
     return value;
 }
 
@@ -179,12 +183,14 @@ Value Reader::parseString() {
     // quotation-mark = %x22 ; "
     // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
 
-    // quotation-mark
-    ++_pCur;
-
+    auto p = _pCur;
     std::string value;
+
+    // quotation-mark
+    ++p;
+
     while (true) {
-        char c = *_pCur;
+        char c = *p;
         if (c == '\0') {
             // end of document
             return error(ParseResult::MissQuotationMark);
@@ -193,19 +199,20 @@ Value Reader::parseString() {
             // invalid char
             return error(ParseResult::InvalidStringChar);
         }
-        // valid char
-        ++_pCur;
+        // c is valid char, p point to next
+        ++p;
         if (c == '"') {
             // end of string
+            _pCur = p;
             return Value(std::move(value));
         }
         if (c == '\\') {
             // escape
-            switch (*_pCur) {
+            switch (*p) {
                 case '"':
                 case '\\':
                 case '/':
-                    c = *_pCur;
+                    c = *p;
                     break;
                 case 'b':
                     c = '\b';
@@ -226,7 +233,7 @@ Value Reader::parseString() {
                     return error(ParseResult::InvalidStringEscape);
             }
             // valid escape
-            ++_pCur;
+            ++p;
         }
         value.push_back(c);
     }
@@ -254,8 +261,9 @@ static NumberType validateNumber(const char* const str, const char*& end) {
     // int = "0" / digit1-9 *digit
     if (*p == '0') {
         ++p;
-    } else if (std::isdigit(*p)) {
-        while (std::isdigit(*p)) {
+    } else if (*p >= '1' && *p <= '9') {
+        ++p;
+        while (*p >= '0' && *p <= '9') {
             ++p;
         }
     } else {
@@ -266,8 +274,9 @@ static NumberType validateNumber(const char* const str, const char*& end) {
     if (*p == '.') {
         ++p;
         isReal = true;
-        if (std::isdigit(*p)) {
-            while (std::isdigit(*p)) {
+        if (*p >= '0' && *p <= '9') {
+            ++p;
+            while (*p >= '0' && *p <= '9') {
                 ++p;
             }
         } else {
@@ -282,8 +291,9 @@ static NumberType validateNumber(const char* const str, const char*& end) {
         if (*p == '-' || *p == '+') {
             ++p;
         }
-        if (std::isdigit(*p)) {
-            while (std::isdigit(*p)) {
+        if (*p >= '0' && *p <= '9') {
+            ++p;
+            while (*p >= '0' && *p <= '9') {
                 ++p;
             }
         } else {
