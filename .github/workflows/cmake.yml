@@ -76,7 +76,7 @@ jobs:
     - name: Install clang-tidy
       run: |
         sudo apt-get -qy update
-        sudo apt-get -qy install clang-tidy-6.0
+        sudo apt-get -qy -t llvm-toolchain-bionic-6.0 install clang-tidy
     - name: Create build directory
       run: cmake -E make_directory build
     - name: CMake
