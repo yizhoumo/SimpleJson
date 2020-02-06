@@ -1,0 +1,5 @@
+---
+Checks: 'modernize-*,performance-*,portability-*,readability-*'
+WarningsAsErrors: '*'
+HeaderFilterRegex: 'include/simplejson/'
+FormatStyle: 'file'
