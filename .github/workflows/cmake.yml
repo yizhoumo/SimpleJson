@@ -11,42 +11,60 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v2
-    - run: mkdir build
+    - name: Create build directory
+      run: cmake -E make_directory build
     - name: CMake
+      working-directory: build
       run: cmake ..
-      working-directory: build
     - name: Build
-      run: cmake --build .
-      working-directory: build
+      run: cmake --build build
     - name: CTest
-      run: ctest --output-on-failure
       working-directory: build
+      run: ctest --output-on-failure
 
   code_coverage:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: mkdir build
+    - name: Create build directory
+      run: cmake -E make_directory build
     - name: CMake
+      working-directory: build
       run: cmake -DCODE_COVERAGE=ON ..
-      working-directory: build
     - name: Build
-      run: cmake --build .
-      working-directory: build
+      run: cmake --build build
     - name: CTest
-      run: ctest
       working-directory: build
+      run: ctest
       continue-on-error: true
     - name: Install lcov
       run: |
         sudo apt-get -qy update
         sudo apt-get -qy install lcov
     - name: Run lcov
-      working-directory: build
       run: |
-        lcov --directory . --capture -o coverage.info
+        lcov --directory build --capture -o coverage.info
         lcov --remove coverage.info '/usr/*' '*/test/*' -o coverage.info
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: build/coverage.info
+        file: coverage.info
+
+  sanitizer:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create build directory
+      run: cmake -E make_directory build
+    - name: CMake
+      working-directory: build
+      run: cmake -Werror=dev ..
+      env:
+        CC: clang
+        CXX: clang++
+        CXXFLAGS: "-fsanitize=address,undefined -fno-omit-frame-pointer -g"
+    - name: Build
+      run: cmake --build build
+    - name: CTest
+      working-directory: build
+      run: ctest --output-on-failure
