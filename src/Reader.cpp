@@ -184,7 +184,7 @@ Value Reader::parseString() {
     // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
 
     auto p = _pCur;
-    std::string value;
+    _strBuf.clear();
 
     // quotation-mark
     ++p;
@@ -204,7 +204,7 @@ Value Reader::parseString() {
         if (c == '"') {
             // end of string
             _pCur = p;
-            return Value(std::move(value));
+            return Value(_strBuf);
         }
         if (c == '\\') {
             // escape
@@ -235,7 +235,7 @@ Value Reader::parseString() {
             // valid escape
             ++p;
         }
-        value.push_back(c);
+        _strBuf.push_back(c);
     }
     // never goto here
 }

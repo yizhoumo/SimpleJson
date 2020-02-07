@@ -44,6 +44,8 @@ private:
     const char* _pCur = nullptr;
     // Result of last round of parsing
     ParseResult _result = ParseResult::Ok;
+    // Buffer of string
+    std::string _strBuf;
 };
 
 }  // namespace SimpleJson

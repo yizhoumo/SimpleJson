@@ -2,6 +2,7 @@
 
 #include <cfloat>
 #include <climits>
+#include <string>
 
 #include "TestHelper.h"
 #include "gtest/gtest.h"
@@ -89,41 +90,54 @@ TEST(ValueTest, TypeReal) {
     EXPECT_VALUE_REAL(0.0);
     EXPECT_VALUE_REAL(1.0);
     EXPECT_VALUE_REAL(-1.0);
-    EXPECT_VALUE_REAL(1.5);       // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-1.5);      // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(DBL_MAX);   // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-DBL_MAX);  // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(DBL_MIN);   // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-DBL_MIN);  // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(1.5);
+    EXPECT_VALUE_REAL(-1.5);
+    EXPECT_VALUE_REAL(DBL_MAX);
+    EXPECT_VALUE_REAL(-DBL_MAX);
+    EXPECT_VALUE_REAL(DBL_MIN);
+    EXPECT_VALUE_REAL(-DBL_MIN);
 
     EXPECT_VALUE_REAL(0.0F);
     EXPECT_VALUE_REAL(1.0F);
     EXPECT_VALUE_REAL(-1.0F);
-    EXPECT_VALUE_REAL(1.5F);      // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-1.5F);     // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(FLT_MAX);   // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-FLT_MAX);  // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(FLT_MIN);   // NOLINT(readability-magic-numbers)
-    EXPECT_VALUE_REAL(-FLT_MIN);  // NOLINT(readability-magic-numbers)
+    EXPECT_VALUE_REAL(1.5F);
+    EXPECT_VALUE_REAL(-1.5F);
+    EXPECT_VALUE_REAL(FLT_MAX);
+    EXPECT_VALUE_REAL(-FLT_MAX);
+    EXPECT_VALUE_REAL(FLT_MIN);
+    EXPECT_VALUE_REAL(-FLT_MIN);
 }
 
 TEST(ValueTest, TypeString) {
     Value val(ValueType::String);
     EXPECT_TRUE(val.isString());
     EXPECT_EQ(ValueType::String, val.type());
-    EXPECT_EQ("", val.asString());
+    EXPECT_TRUE(val.asString().empty());
+    EXPECT_EQ(nullptr, val.asCString());
+
+    val = Value("");
+    EXPECT_EQ(ValueType::String, val.type());
+    EXPECT_TRUE(val.asString().empty());
+    EXPECT_EQ(nullptr, val.asCString());
 
     std::string str = "hello";
     val = Value(str);
-    EXPECT_TRUE(val.isString());
     EXPECT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
+    EXPECT_STREQ(str.data(), val.asCString());
 
     str = "world";
     val = Value(str.data());
-    EXPECT_TRUE(val.isString());
     EXPECT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
+    EXPECT_STREQ(str.data(), val.asCString());
+
+    using namespace std::string_literals;
+    str = "hello\0world!"s;
+    val = Value(str);
+    EXPECT_EQ(ValueType::String, val.type());
+    EXPECT_EQ(str, val.asString());
+    EXPECT_STREQ(str.data(), val.asCString());
 }
 
 }  // namespace SimpleJson
