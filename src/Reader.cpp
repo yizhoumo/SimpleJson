@@ -331,22 +331,22 @@ void Reader::encodeUnicode(const unsigned codePoint) {
     if (codePoint <= 0x007F) {
         // 7-bit code point, 1-byte code unit
         // 0xx'xxxx
-        _strBuf.push_back(codePoint);
+        _strBuf.push_back(0b11'1111 & codePoint);
     } else if (codePoint <= 0x07FF) {
         // 11-bit code point, 2-byte code unit
         // 110x'xxxx 10xx'xxxx
-        _strBuf.push_back(0b1100'0000 | (codePoint >> 6));
+        _strBuf.push_back(0b1100'0000 | (0b01'1111 & (codePoint >> 6)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));
     } else if (codePoint <= 0xFFFF) {
         // 16-bit code point, 3-byte code unit
         // 1110'xxxx 10xx'xxxx 10xx'xxxx
-        _strBuf.push_back(0b1110'0000 | (codePoint >> 12));
+        _strBuf.push_back(0b1110'0000 | (0b1111 & (codePoint >> 12)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 6)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));
     } else if (codePoint <= 0x10FFFF) {
         // 21-bit code point, 4-byte code unit
         // 1111'0xxx 10xx'xxxx 10xx'xxxx 10xx'xxxx
-        _strBuf.push_back(0b1111'0000 | (codePoint >> 18));
+        _strBuf.push_back(0b1111'0000 | (0b0111 & (codePoint >> 18)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 12)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 6)));
         _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));

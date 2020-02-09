@@ -144,7 +144,7 @@ TEST_F(ReaderTest, ParseInvalidStringChar) {
 }
 
 TEST_F(ReaderTest, ParseStringUnicode) {
-    using std::string_literals::operator""s;
+    using namespace std::string_literals;
     EXPECT_PARSE_STRING("Hello\0World"s, R"("Hello\u0000World")");
 
     // Dollar sign U+0024
