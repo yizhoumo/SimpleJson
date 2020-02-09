@@ -40,6 +40,10 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val) {
             return out << "[InvalidStringEscape]";
         case SimpleJson::ParseResult::InvalidStringChar:
             return out << "[InvalidStringChar]";
+        case SimpleJson::ParseResult::InvalidUnicodeHex:
+            return out << "[InvalidUnicodeHex]";
+        case SimpleJson::ParseResult::InvalidUnicodeSurrogate:
+            return out << "[InvalidUnicodeSurrogate]";
     }
 
     // not possible

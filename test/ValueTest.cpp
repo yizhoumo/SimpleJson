@@ -132,7 +132,7 @@ TEST(ValueTest, TypeString) {
     EXPECT_EQ(str, val.asString());
     EXPECT_STREQ(str.data(), val.asCString());
 
-    using namespace std::string_literals;
+    using std::string_literals::operator""s;
     str = "hello\0world!"s;
     val = Value(str);
     EXPECT_EQ(ValueType::String, val.type());

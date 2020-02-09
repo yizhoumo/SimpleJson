@@ -143,4 +143,45 @@ TEST_F(ReaderTest, ParseInvalidStringChar) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringChar, "\"\x1F\"");
 }
 
+TEST_F(ReaderTest, ParseStringUnicode) {
+    using std::string_literals::operator""s;
+    EXPECT_PARSE_STRING("Hello\0World"s, R"("Hello\u0000World")");
+
+    // Dollar sign U+0024
+    EXPECT_PARSE_STRING("\x24", R"("\u0024")");
+    // Cents sign U+00A2
+    EXPECT_PARSE_STRING("\xC2\xA2", R"("\u00A2")");
+    // Euro sign U+20AC
+    EXPECT_PARSE_STRING("\xE2\x82\xAC", R"("\u20AC")");
+
+    // G clef sign U+1D11E
+    EXPECT_PARSE_STRING("\xF0\x9D\x84\x9E", R"("\uD834\uDD1E")");
+    EXPECT_PARSE_STRING("\xF0\x9D\x84\x9E", R"("\ud834\udd1e")");
+}
+
+TEST_F(ReaderTest, ParseInvalidUnicodeHex) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u0")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u01")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u012")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u/000")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\uG000")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u0/00")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u0G00")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u00/0")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u00G0")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000/")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000G")");
+}
+
+TEST_F(ReaderTest, ParseInvalidUnicodeSurrogate) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD800")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD8FF")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD800\\")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate,
+                       R"("\uD800\uDBFF")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate,
+                       R"("\uD800\uE000")");
+}
+
 }  // namespace SimpleJson

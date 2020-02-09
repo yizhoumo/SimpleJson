@@ -15,7 +15,9 @@ enum class ParseResult {
     NumberOverflow,
     MissQuotationMark,
     InvalidStringEscape,
-    InvalidStringChar
+    InvalidStringChar,
+    InvalidUnicodeHex,
+    InvalidUnicodeSurrogate,
 };
 
 class Reader {
@@ -38,6 +40,9 @@ private:
     Value parseInteger(const char* numberEnd);
     Value parseReal(const char* numberEnd);
     Value parseString();
+    ParseResult parseEscaped();
+    ParseResult parseUnicode();
+    void encodeUnicode(unsigned codePoint);
 
 private:
     // Current location of document, valid only during parsing

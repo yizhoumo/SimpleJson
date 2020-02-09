@@ -1,5 +1,5 @@
 ---
 Checks: 'bugprone-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type'
-WarningsAsErrors: '*'
+WarningsAsErrors: '*,-readability-magic-numbers'
 HeaderFilterRegex: 'include/simplejson/'
 FormatStyle: 'file'

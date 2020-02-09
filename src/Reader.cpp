@@ -7,8 +7,16 @@
 
 enum class NumberType { Nan, Integer, Real };
 
+// helpers
+namespace {
+
 /// check what type of number is `str`, and set `end` to the char past it
-static NumberType validateNumber(const char* str, const char*& end);
+NumberType validateNumber(const char* str, const char*& end);
+
+/// parse str as length-digit hex, return -1 if str is invalid
+int parseHex(const char* str, size_t length);
+
+}  // namespace
 
 namespace SimpleJson {
 
@@ -168,7 +176,53 @@ Value Reader::parseString() {
     assert(_pCur != nullptr);
     assert(*_pCur == '"');
     // string = quotation-mark *char quotation-mark
-    // char = unescaped /
+    // char = unescaped / escape (...)
+    // escape = %x5C         ; \    reverse solidus
+    // quotation-mark = %x22 ; "
+    // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
+
+    _strBuf.clear();
+
+    // quotation-mark
+    ++_pCur;
+
+    while (true) {
+        char c = *_pCur;
+        if (c == '\0') {
+            // end of document
+            return error(ParseResult::MissQuotationMark);
+        }
+        if (static_cast<unsigned char>(c) < '\x20') {
+            // invalid char
+            return error(ParseResult::InvalidStringChar);
+        }
+
+        // c is valid char
+        if (c == '"') {
+            // end of string
+            ++_pCur;
+            return Value(_strBuf);
+        }
+        if (c == '\\') {
+            // escaped
+            const auto res = parseEscaped();
+            if (res != ParseResult::Ok) {
+                return error(res);
+            }
+        } else {
+            // unescaped
+            _strBuf.push_back(c);
+            ++_pCur;
+        }
+    }
+    // never goto here
+}
+
+ParseResult Reader::parseEscaped() {
+    assert(_pCur != nullptr);
+    assert(*_pCur == '\\');
+
+    // escaped =
     //   escape (
     //       %x22 /          ; "    quotation mark  U+0022
     //       %x5C /          ; \    reverse solidus U+005C
@@ -180,74 +234,137 @@ Value Reader::parseString() {
     //       %x74 /          ; t    tab             U+0009
     //       %x75 4HEXDIG )  ; uXXXX                U+XXXX
     // escape = %x5C         ; \    reverse solidus
-    // quotation-mark = %x22 ; "
-    // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
+
+    char c = 0;
+    switch (_pCur[1]) {
+        case '"':
+        case '\\':
+        case '/':
+            c = _pCur[1];
+            break;
+        case 'b':
+            c = '\b';
+            break;
+        case 'f':
+            c = '\f';
+            break;
+        case 'n':
+            c = '\n';
+            break;
+        case 'r':
+            c = '\r';
+            break;
+        case 't':
+            c = '\t';
+            break;
+        case 'u':
+            return parseUnicode();
+        default:
+            return ParseResult::InvalidStringEscape;
+    }
+
+    // valid escape (except unicode)
+    _strBuf.push_back(c);
+    _pCur += 2;
+    return ParseResult::Ok;
+}
+
+ParseResult Reader::parseUnicode() {
+    assert(_pCur != nullptr);
+    assert(_pCur[0] == '\\');
+    assert(_pCur[1] == 'u');
+
+    constexpr auto HEX_DIGIT_LEN = 4;
+    constexpr auto SURROGATE_BIT_LEN = 10;
+    constexpr auto HIGH_SURROGATE_MIN = 0xD800;
+    constexpr auto HIGH_SURROGATE_MAX = 0xDBFF;
+    constexpr auto LOW_SURROGATE_MIN = 0xDC00;
+    constexpr auto LOW_SURROGATE_MAX = 0xDFFF;
+    constexpr auto SURROGATE_PAIR_MIN = 0x1'0000;
+    constexpr auto SURROGATE_PAIR_MAX = 0x10'FFFF;
 
     auto p = _pCur;
-    _strBuf.clear();
+    p += 2;
 
-    // quotation-mark
-    ++p;
-
-    while (true) {
-        char c = *p;
-        if (c == '\0') {
-            // end of document
-            return error(ParseResult::MissQuotationMark);
-        }
-        if ((unsigned char)c < '\x20') {
-            // invalid char
-            return error(ParseResult::InvalidStringChar);
-        }
-        // c is valid char, p point to next
-        ++p;
-        if (c == '"') {
-            // end of string
-            _pCur = p;
-            return Value(_strBuf);
-        }
-        if (c == '\\') {
-            // escape
-            switch (*p) {
-                case '"':
-                case '\\':
-                case '/':
-                    c = *p;
-                    break;
-                case 'b':
-                    c = '\b';
-                    break;
-                case 'f':
-                    c = '\f';
-                    break;
-                case 'n':
-                    c = '\n';
-                    break;
-                case 'r':
-                    c = '\r';
-                    break;
-                case 't':
-                    c = '\t';
-                    break;
-                default:
-                    return error(ParseResult::InvalidStringEscape);
-            }
-            // valid escape
-            ++p;
-        }
-        _strBuf.push_back(c);
+    // parse code point
+    int codePoint = parseHex(p, HEX_DIGIT_LEN);
+    if (codePoint == -1) {
+        return ParseResult::InvalidUnicodeHex;
     }
-    // never goto here
+    assert(codePoint >= 0 && codePoint <= 0xFFFF);
+    p += HEX_DIGIT_LEN;
+
+    // surrogate pair
+    if (codePoint >= HIGH_SURROGATE_MIN && codePoint <= HIGH_SURROGATE_MAX) {
+        const int high = codePoint;
+        if (p[0] != '\\' || p[1] != 'u') {
+            return ParseResult::InvalidUnicodeSurrogate;
+        }
+        p += 2;
+
+        const int low = parseHex(p, HEX_DIGIT_LEN);
+        if (low == -1) {
+            return ParseResult::InvalidUnicodeHex;
+        }
+        p += HEX_DIGIT_LEN;
+
+        if (low >= LOW_SURROGATE_MIN && low <= LOW_SURROGATE_MAX) {
+            codePoint = SURROGATE_PAIR_MIN +
+                        ((high - HIGH_SURROGATE_MIN) << SURROGATE_BIT_LEN) +
+                        (low - LOW_SURROGATE_MIN);
+        } else {
+            return ParseResult::InvalidUnicodeSurrogate;
+        }
+        assert(codePoint >= SURROGATE_PAIR_MIN &&
+               codePoint <= SURROGATE_PAIR_MAX);
+    }
+
+    // valid code point
+    encodeUnicode(codePoint);
+    _pCur = p;
+    return ParseResult::Ok;
+}
+
+void Reader::encodeUnicode(const unsigned codePoint) {
+    assert(codePoint <= 0x10FFFF);
+
+    if (codePoint <= 0x007F) {
+        // 7-bit code point, 1-byte code unit
+        // 0xx'xxxx
+        _strBuf.push_back(codePoint);
+    } else if (codePoint <= 0x07FF) {
+        // 11-bit code point, 2-byte code unit
+        // 110x'xxxx 10xx'xxxx
+        _strBuf.push_back(0b1100'0000 | (codePoint >> 6));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));
+    } else if (codePoint <= 0xFFFF) {
+        // 16-bit code point, 3-byte code unit
+        // 1110'xxxx 10xx'xxxx 10xx'xxxx
+        _strBuf.push_back(0b1110'0000 | (codePoint >> 12));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 6)));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));
+    } else if (codePoint <= 0x10FFFF) {
+        // 21-bit code point, 4-byte code unit
+        // 1111'0xxx 10xx'xxxx 10xx'xxxx 10xx'xxxx
+        _strBuf.push_back(0b1111'0000 | (codePoint >> 18));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 12)));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & (codePoint >> 6)));
+        _strBuf.push_back(0b1000'0000 | (0b11'1111 & codePoint));
+    }
 }
 
 }  // namespace SimpleJson
 
 // ===== helpers =====
+namespace {
 
-static NumberType validateNumber(const char* const str, const char*& end) {
+NumberType validateNumber(const char* const str, const char*& end) {
     // number = [ "-" ] int [ frac ] [ exp ]
     assert(str != nullptr);
     assert(*str != 0);
+    if (str == nullptr) {
+        return NumberType::Nan;
+    }
 
     end = str;
     auto p = str;
@@ -306,3 +423,33 @@ static NumberType validateNumber(const char* const str, const char*& end) {
 
     return isReal ? NumberType::Real : NumberType::Integer;
 }
+
+int parseHex(const char* str, const size_t length) {
+    assert(str != nullptr);
+    if (str == nullptr) {
+        return -1;
+    }
+
+    int res = 0;
+    for (size_t i = 0; i < length; ++i) {
+        const char c = str[i];
+
+        int val = 0;
+        if (c >= '0' && c <= '9') {
+            val = c - '0';
+        } else if (c >= 'A' && c <= 'F') {
+            val = c - 'A' + 10;
+        } else if (c >= 'a' && c <= 'f') {
+            val = c - 'a' + 10;
+        } else {
+            return -1;
+        }
+
+        res *= 16;
+        res += val;
+    }
+
+    return res;
+}
+
+}  // namespace
