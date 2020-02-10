@@ -22,19 +22,19 @@ TEST(ValueTest, TypeNull) {
 TEST(ValueTest, TypeBool) {
     Value val(ValueType::Bool);
     EXPECT_TRUE(val.isBool());
-    EXPECT_EQ(ValueType::Bool, val.type());
+    ASSERT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(false, val.asBool());
 
-    val = Value(true);
+    val = true;
     EXPECT_TRUE(val.isBool());
-    EXPECT_EQ(ValueType::Bool, val.type());
+    ASSERT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(true, val.asBool());
 }
 
 TEST(ValueTest, TypeInteger) {
     Value val(ValueType::Integer);
     EXPECT_TRUE(val.isInteger());
-    EXPECT_EQ(ValueType::Integer, val.type());
+    ASSERT_EQ(ValueType::Integer, val.type());
     EXPECT_EQ(0, val.asInteger());
 }
 
@@ -84,7 +84,7 @@ TEST(ValueTest, TypeIntegerUnsigned) {
 TEST(ValueTest, TypeReal) {
     Value val(ValueType::Real);
     EXPECT_TRUE(val.isReal());
-    EXPECT_EQ(ValueType::Real, val.type());
+    ASSERT_EQ(ValueType::Real, val.type());
     EXPECT_EQ(0.0, val.asReal());
 
     EXPECT_VALUE_REAL(0.0);
@@ -111,33 +111,65 @@ TEST(ValueTest, TypeReal) {
 TEST(ValueTest, TypeString) {
     Value val(ValueType::String);
     EXPECT_TRUE(val.isString());
-    EXPECT_EQ(ValueType::String, val.type());
+    ASSERT_EQ(ValueType::String, val.type());
     EXPECT_TRUE(val.asString().empty());
     EXPECT_EQ(nullptr, val.asCString());
 
-    val = Value("");
-    EXPECT_EQ(ValueType::String, val.type());
+    val = "";
+    ASSERT_EQ(ValueType::String, val.type());
     EXPECT_TRUE(val.asString().empty());
     EXPECT_EQ(nullptr, val.asCString());
 
     std::string str = "hello";
-    val = Value(str);
-    EXPECT_EQ(ValueType::String, val.type());
+    val = str;
+    ASSERT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
     EXPECT_STREQ(str.data(), val.asCString());
 
     str = "world";
-    val = Value(str.data());
-    EXPECT_EQ(ValueType::String, val.type());
+    val = str.data();
+    ASSERT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
     EXPECT_STREQ(str.data(), val.asCString());
 
     using namespace std::string_literals;
     str = "hello\0world!"s;
-    val = Value(str);
-    EXPECT_EQ(ValueType::String, val.type());
+    val = str;
+    ASSERT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
     EXPECT_STREQ(str.data(), val.asCString());
+}
+
+TEST(ValueTest, TypeArray) {
+    using namespace std::string_literals;
+
+    Value val(ValueType::Array);
+    EXPECT_TRUE(val.isArray());
+    ASSERT_EQ(ValueType::Array, val.type());
+    EXPECT_TRUE(val.empty());
+    EXPECT_EQ(0, val.size());
+
+    val.append(1);
+    val.append(2.0);
+    val.append("hello");
+    val.append("world"s);
+
+    ASSERT_EQ(4, val.size());
+    EXPECT_EQ(1, val[0].asInteger());
+    EXPECT_EQ(2.0, val[1].asReal());
+    EXPECT_EQ("hello", val[2].asStringView());
+    EXPECT_EQ("world"s, val[3].asStringView());
+
+    val.resize(5);
+    ASSERT_EQ(5, val.size());
+    EXPECT_EQ(1, val[0].asInteger());
+    EXPECT_EQ(2.0, val[1].asReal());
+    EXPECT_EQ("hello", val[2].asStringView());
+    EXPECT_EQ("world"s, val[3].asStringView());
+    EXPECT_EQ(ValueType::Null, val[4].type());
+
+    val.clear();
+    EXPECT_EQ(0, val.size());
 }
 
 }  // namespace SimpleJson

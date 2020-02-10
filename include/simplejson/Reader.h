@@ -7,7 +7,7 @@
 
 namespace SimpleJson {
 
-enum class ParseResult {
+enum class [[nodiscard]] ParseResult{
     Ok,
     ExpectValue,
     InvalidValue,
@@ -18,6 +18,8 @@ enum class ParseResult {
     InvalidStringChar,
     InvalidUnicodeHex,
     InvalidUnicodeSurrogate,
+    MissComma,
+    MissSquareBracket,
 };
 
 class Reader {
@@ -33,16 +35,17 @@ public:
 
 private:
     void skipWhitespace();
-    Value error(ParseResult errorType);
-    Value parseValue();
-    Value parseLiteral(std::string_view literal, Value value);
-    Value parseNumber();
-    Value parseInteger(const char* numberEnd);
-    Value parseReal(const char* numberEnd);
-    Value parseString();
-    ParseResult parseEscaped();
-    ParseResult parseUnicode();
+    [[nodiscard]] Value error(ParseResult errorType);
+    [[nodiscard]] Value parseValue();
+    [[nodiscard]] Value parseLiteral(std::string_view literal, Value value);
+    [[nodiscard]] Value parseNumber();
+    [[nodiscard]] Value parseInteger(const char* numberEnd);
+    [[nodiscard]] Value parseReal(const char* numberEnd);
+    [[nodiscard]] Value parseString();
+    [[nodiscard]] ParseResult parseEscaped();
+    [[nodiscard]] ParseResult parseUnicode();
     void encodeUnicode(unsigned codePoint);
+    [[nodiscard]] Value parseArray();
 
 private:
     // Current location of document, valid only during parsing

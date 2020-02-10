@@ -71,11 +71,13 @@ Value Reader::parseValue() {
         case 'n':
             return parseLiteral("null", Value());
         case 't':
-            return parseLiteral("true", Value(true));
+            return parseLiteral("true", true);
         case 'f':
-            return parseLiteral("false", Value(false));
+            return parseLiteral("false", false);
         case '"':
             return parseString();
+        case '[':
+            return parseArray();
         default:
             return parseNumber();
     }
@@ -181,13 +183,14 @@ Value Reader::parseString() {
     // quotation-mark = %x22 ; "
     // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
 
+    assert(_strBuf.empty());
     _strBuf.clear();
 
     // quotation-mark
     ++_pCur;
 
     while (true) {
-        char c = *_pCur;
+        const char c = *_pCur;
         if (c == '\0') {
             // end of document
             return error(ParseResult::MissQuotationMark);
@@ -201,7 +204,9 @@ Value Reader::parseString() {
         if (c == '"') {
             // end of string
             ++_pCur;
-            return Value(_strBuf);
+            auto value = Value(_strBuf);
+            _strBuf.clear();
+            return value;
         }
         if (c == '\\') {
             // escaped
@@ -353,6 +358,45 @@ void Reader::encodeUnicode(const unsigned codePoint) {
     }
 }
 
+/// array = %x5B ws [ value *( ws %x2C ws value ) ] ws %x5D
+Value Reader::parseArray() {
+    assert(_pCur != nullptr);
+    assert(*_pCur == '[');
+
+    // '['
+    ++_pCur;
+
+    auto value = Value(ValueType::Array);
+    while (true) {
+        skipWhitespace();
+        const char c = *_pCur;
+        if (c == '\0') {
+            // end of document
+            return error(ParseResult::MissSquareBracket);
+        }
+        if (c == ']') {
+            // end of array
+            ++_pCur;
+            return value;
+        }
+        if (!value.empty()) {
+            // expect comma
+            if (c != ',') {
+                return error(ParseResult::MissComma);
+            }
+            ++_pCur;
+            skipWhitespace();
+        }
+        // parse element
+        auto element = parseValue();
+        if (!good()) {
+            return Value();
+        }
+        value.append(std::move(element));
+    }
+    // never goto here
+}
+
 }  // namespace SimpleJson
 
 // ===== helpers =====
@@ -363,6 +407,7 @@ NumberType validateNumber(const char* const str, const char*& end) {
     assert(str != nullptr);
     assert(*str != 0);
     if (str == nullptr) {
+        // not possible
         return NumberType::Nan;
     }
 
@@ -427,6 +472,7 @@ NumberType validateNumber(const char* const str, const char*& end) {
 int parseHex(const char* str, const size_t length) {
     assert(str != nullptr);
     if (str == nullptr) {
+        // not possible
         return -1;
     }
 

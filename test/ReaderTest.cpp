@@ -125,19 +125,19 @@ TEST_F(ReaderTest, ParseString) {
                         R"("\" \\ \/ \b \f \n \r \t")");
 }
 
-TEST_F(ReaderTest, ParseMissQuotationMark) {
+TEST_F(ReaderTest, ParseStringMissQuotationMark) {
     EXPECT_PARSE_ERROR(ParseResult::MissQuotationMark, R"(")");
     EXPECT_PARSE_ERROR(ParseResult::MissQuotationMark, R"("abc)");
 }
 
-TEST_F(ReaderTest, ParseInvalidStringEscape) {
+TEST_F(ReaderTest, ParseStringInvalidStringEscape) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\v")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\'")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\0")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringEscape, R"("\x12")");
 }
 
-TEST_F(ReaderTest, ParseInvalidStringChar) {
+TEST_F(ReaderTest, ParseStringInvalidStringChar) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringChar, "\"\x01\"");
     EXPECT_PARSE_ERROR(ParseResult::InvalidStringChar, "\"\x1F\"");
 }
@@ -158,7 +158,7 @@ TEST_F(ReaderTest, ParseStringUnicode) {
     EXPECT_PARSE_STRING("\xF0\x9D\x84\x9E", R"("\ud834\udd1e")");
 }
 
-TEST_F(ReaderTest, ParseInvalidUnicodeHex) {
+TEST_F(ReaderTest, ParseStringInvalidUnicodeHex) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u0")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u01")");
@@ -171,9 +171,10 @@ TEST_F(ReaderTest, ParseInvalidUnicodeHex) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u00G0")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000/")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000G")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\uD800\u")");
 }
 
-TEST_F(ReaderTest, ParseInvalidUnicodeSurrogate) {
+TEST_F(ReaderTest, ParseStringInvalidUnicodeSurrogate) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD800")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD8FF")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate, R"("\uD800\\")");
@@ -181,6 +182,65 @@ TEST_F(ReaderTest, ParseInvalidUnicodeSurrogate) {
                        R"("\uD800\uDBFF")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeSurrogate,
                        R"("\uD800\uE000")");
+}
+
+TEST_F(ReaderTest, ParseArrayEmpty) {
+    Value value;
+    reader.parse("[ ]", value);
+    EXPECT_EQ(ParseResult::Ok, reader.result());
+    ASSERT_EQ(ValueType::Array, value.type());
+    EXPECT_TRUE(value.empty());
+    EXPECT_EQ(0, value.size());
+}
+
+TEST_F(ReaderTest, ParseArray) {
+    Value value;
+    auto doc = "[ null , false , true , 123 , \"abc\" ]";
+    reader.parse(doc, value);
+    EXPECT_EQ(ParseResult::Ok, reader.result());
+    ASSERT_EQ(ValueType::Array, value.type());
+
+    ASSERT_EQ(5, value.size());
+    EXPECT_EQ(ValueType::Null, value[0].type());
+    EXPECT_EQ(false, value[1].asBool());
+    EXPECT_EQ(true, value[2].asBool());
+    EXPECT_EQ(123, value[3].asInteger());
+    EXPECT_EQ("abc", value[4].asStringView());
+}
+
+TEST_F(ReaderTest, ParseArray2D) {
+    Value value;
+    auto doc = "[ [ ] , [ 0 ] , [ 0 , 1 ] , [ 0 , 1 , 2 ] ]";
+    reader.parse(doc, value);
+    EXPECT_EQ(ParseResult::Ok, reader.result());
+    ASSERT_EQ(ValueType::Array, value.type());
+
+    ASSERT_EQ(4, value.size());
+
+    for (int i = 0; i < 4; ++i) {
+        ASSERT_EQ(ValueType::Array, value[i].type());
+        ASSERT_EQ(i, value[i].size());
+        for (int j = 0; j < i; ++j) {
+            ASSERT_EQ(ValueType::Integer, value[i][j].type());
+            EXPECT_EQ(j, value[i][j].asInteger());
+        }
+    }
+}
+
+TEST_F(ReaderTest, ParseArrayInvalidValue) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidValue, "[1,]");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidValue, "[\"a\", nul]");
+}
+
+TEST_F(ReaderTest, ParseArrayMissComma) {
+    EXPECT_PARSE_ERROR(ParseResult::MissComma, "[1 2 ]");
+    EXPECT_PARSE_ERROR(ParseResult::MissComma, "[1 }");
+}
+
+TEST_F(ReaderTest, ParseArrayMissSquareBracket) {
+    EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[1 ");
+    EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[1 , 2 ");
+    EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[ [ ] ");
 }
 
 }  // namespace SimpleJson

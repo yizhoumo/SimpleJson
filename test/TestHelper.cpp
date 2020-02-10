@@ -44,6 +44,10 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val) {
             return out << "[InvalidUnicodeHex]";
         case SimpleJson::ParseResult::InvalidUnicodeSurrogate:
             return out << "[InvalidUnicodeSurrogate]";
+        case SimpleJson::ParseResult::MissComma:
+            return out << "[MissComma]";
+        case SimpleJson::ParseResult::MissSquareBracket:
+            return out << "[MissSquareBracket]";
     }
 
     // not possible
