@@ -48,6 +48,12 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val) {
             return out << "[MissComma]";
         case SimpleJson::ParseResult::MissSquareBracket:
             return out << "[MissSquareBracket]";
+        case SimpleJson::ParseResult::MissKey:
+            return out << "[MissKey]";
+        case SimpleJson::ParseResult::MissColon:
+            return out << "[MissColon]";
+        case SimpleJson::ParseResult::MissCurlyBracket:
+            return out << "[MissCurlyBracket]";
     }
 
     // not possible

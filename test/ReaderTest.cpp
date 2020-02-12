@@ -171,6 +171,7 @@ TEST_F(ReaderTest, ParseStringInvalidUnicodeHex) {
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u00G0")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000/")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u000G")");
+    EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\u 123")");
     EXPECT_PARSE_ERROR(ParseResult::InvalidUnicodeHex, R"("\uD800\u")");
 }
 
@@ -241,6 +242,84 @@ TEST_F(ReaderTest, ParseArrayMissSquareBracket) {
     EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[1 ");
     EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[1 , 2 ");
     EXPECT_PARSE_ERROR(ParseResult::MissSquareBracket, "[ [ ] ");
+}
+
+TEST_F(ReaderTest, ParseObjectEmpty) {
+    Value value;
+    reader.parse("{ }", value);
+    EXPECT_EQ(ParseResult::Ok, reader.result());
+    ASSERT_EQ(ValueType::Object, value.type());
+    EXPECT_TRUE(value.empty());
+    EXPECT_EQ(0, value.size());
+}
+
+TEST_F(ReaderTest, ParseObject) {
+    const auto doc = R"({
+        "n" : null ,
+        "f" : false ,
+        "t" : true ,
+        "i" : 123 ,
+        "d" : 1.23 ,
+        "s" : "hello" ,
+        "a" : [ 1 , 2 , 3 ] ,
+        "o" : { "1": 1 , "2" : 2 , "3" : 3 }
+    })";
+
+    Value value;
+    reader.parse(doc, value);
+    EXPECT_EQ(ParseResult::Ok, reader.result());
+    ASSERT_EQ(ValueType::Object, value.type());
+    EXPECT_EQ(8, value.size());
+
+    EXPECT_EQ(ValueType::Null, value["n"].type());
+    EXPECT_EQ(false, value["f"].asBool());
+    EXPECT_EQ(true, value["t"].asBool());
+    EXPECT_EQ(123, value["i"].asInteger());
+    EXPECT_EQ(1.23, value["d"].asReal());
+    EXPECT_EQ("hello", value["s"].asStringView());
+
+    ASSERT_EQ(ValueType::Array, value["a"].type());
+    ASSERT_EQ(3, value["a"].size());
+    EXPECT_EQ(1, value["a"][0].asInteger());
+    EXPECT_EQ(2, value["a"][1].asInteger());
+    EXPECT_EQ(3, value["a"][2].asInteger());
+
+    ASSERT_EQ(ValueType::Object, value["o"].type());
+    EXPECT_EQ(3, value["o"].size());
+    EXPECT_EQ(1, value["o"]["1"].asInteger());
+    EXPECT_EQ(2, value["o"]["2"].asInteger());
+    EXPECT_EQ(3, value["o"]["3"].asInteger());
+}
+
+TEST_F(ReaderTest, ParseObjectMissKey) {
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{1:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{true:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{false:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{null:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{[]:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{{}:1,");
+    EXPECT_PARSE_ERROR(ParseResult::MissKey, "{\"a\":1,");
+}
+
+TEST_F(ReaderTest, ParseObjectMissColon) {
+    EXPECT_PARSE_ERROR(ParseResult::MissColon, R"({"a"})");
+    EXPECT_PARSE_ERROR(ParseResult::MissColon, R"({"a","b"})");
+}
+
+TEST_F(ReaderTest, ParseObjectMissComma) {
+    EXPECT_PARSE_ERROR(ParseResult::MissComma, R"({"a":1])");
+    EXPECT_PARSE_ERROR(ParseResult::MissComma, R"({"a":1 "b")");
+}
+
+TEST_F(ReaderTest, ParseObjectMissCurlyBracket) {
+    EXPECT_PARSE_ERROR(ParseResult::MissCurlyBracket, R"({"a":1)");
+    EXPECT_PARSE_ERROR(ParseResult::MissCurlyBracket, R"({"a":{})");
+}
+
+TEST_F(ReaderTest, ParseObjectInvalidValue) {
+    EXPECT_PARSE_ERROR(ParseResult::InvalidValue, R"({"a": nul})");
+    EXPECT_PARSE_ERROR(ParseResult::MissQuotationMark, R"({"abc)");
 }
 
 }  // namespace SimpleJson

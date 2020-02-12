@@ -141,8 +141,6 @@ TEST(ValueTest, TypeString) {
 }
 
 TEST(ValueTest, TypeArray) {
-    using namespace std::string_literals;
-
     Value val(ValueType::Array);
     EXPECT_TRUE(val.isArray());
     ASSERT_EQ(ValueType::Array, val.type());
@@ -152,23 +150,61 @@ TEST(ValueTest, TypeArray) {
     val.append(1);
     val.append(2.0);
     val.append("hello");
-    val.append("world"s);
+    val.append(val);
 
     ASSERT_EQ(4, val.size());
     EXPECT_EQ(1, val[0].asInteger());
     EXPECT_EQ(2.0, val[1].asReal());
     EXPECT_EQ("hello", val[2].asStringView());
-    EXPECT_EQ("world"s, val[3].asStringView());
+    ASSERT_EQ(ValueType::Array, val[3].type());
+    ASSERT_EQ(3, val[3].size());
+    EXPECT_EQ(1, val[3][0].asInteger());
+    EXPECT_EQ(2.0, val[3][1].asReal());
+    EXPECT_EQ("hello", val[3][2].asStringView());
 
     val.resize(5);
     ASSERT_EQ(5, val.size());
     EXPECT_EQ(1, val[0].asInteger());
     EXPECT_EQ(2.0, val[1].asReal());
     EXPECT_EQ("hello", val[2].asStringView());
-    EXPECT_EQ("world"s, val[3].asStringView());
+    ASSERT_EQ(ValueType::Array, val[3].type());
+    ASSERT_EQ(3, val[3].size());
+    EXPECT_EQ(1, val[3][0].asInteger());
+    EXPECT_EQ(2.0, val[3][1].asReal());
+    EXPECT_EQ("hello", val[3][2].asStringView());
     EXPECT_EQ(ValueType::Null, val[4].type());
 
     val.clear();
+    EXPECT_TRUE(val.empty());
+    EXPECT_EQ(0, val.size());
+}
+
+TEST(ValueTest, TypeObject) {
+    Value val(ValueType::Object);
+    EXPECT_TRUE(val.isObject());
+    ASSERT_EQ(ValueType::Object, val.type());
+    EXPECT_TRUE(val.empty());
+    EXPECT_EQ(0, val.size());
+
+    val["one"] = 1;
+    val["two"] = 2.0;
+    val["hello"] = "world";
+    val["this"] = val;
+    EXPECT_EQ(ValueType::Null, val["null"].type());
+
+    EXPECT_EQ(5, val.size());
+    EXPECT_EQ(1, val["one"].asInteger());
+    EXPECT_EQ(2.0, val["two"].asReal());
+    EXPECT_EQ("world", val["hello"].asStringView());
+
+    ASSERT_EQ(ValueType::Object, val["this"].type());
+    EXPECT_EQ(3, val["this"].size());
+    EXPECT_EQ(1, val["this"]["one"].asInteger());
+    EXPECT_EQ(2.0, val["this"]["two"].asReal());
+    EXPECT_EQ("world", val["this"]["hello"].asStringView());
+
+    val.clear();
+    EXPECT_TRUE(val.empty());
     EXPECT_EQ(0, val.size());
 }
 

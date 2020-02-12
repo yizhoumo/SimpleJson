@@ -20,6 +20,9 @@ enum class [[nodiscard]] ParseResult{
     InvalidUnicodeSurrogate,
     MissComma,
     MissSquareBracket,
+    MissKey,
+    MissColon,
+    MissCurlyBracket,
 };
 
 class Reader {
@@ -41,11 +44,12 @@ private:
     [[nodiscard]] Value parseNumber();
     [[nodiscard]] Value parseInteger(const char* numberEnd);
     [[nodiscard]] Value parseReal(const char* numberEnd);
-    [[nodiscard]] Value parseString();
+    [[nodiscard]] ParseResult parseString();
     [[nodiscard]] ParseResult parseEscaped();
     [[nodiscard]] ParseResult parseUnicode();
     void encodeUnicode(unsigned codePoint);
     [[nodiscard]] Value parseArray();
+    [[nodiscard]] Value parseObject();
 
 private:
     // Current location of document, valid only during parsing

@@ -23,18 +23,20 @@ public:
     Value() = default;
     explicit Value(ValueType type);
     Value(Bool val) : _type(ValueType::Bool), _data(val) {}
-
     Value(Integer val) : _type(ValueType::Integer), _data(val) {}
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     Value(T val) : Value(Integer(val)) {}
-
     Value(Real val) : _type(ValueType::Real), _data(val) {}
     Value(std::string_view str)
         : _type(ValueType::String), _data(String(str)) {}
     Value(const char* str) : Value(std::string_view(str)) {}
     Value(const std::string& str) : Value(std::string_view(str)) {}
 
-    // TODO: copy ctor?
+    Value(const Value& other);
+    Value(Value && other) = default;
+
+    Value& operator=(Value other);
+    void swap(Value & other);
 
 public:
     [[nodiscard]] ValueType type() const { return _type; }
@@ -44,6 +46,7 @@ public:
     [[nodiscard]] bool isReal() const { return _type == ValueType::Real; }
     [[nodiscard]] bool isString() const { return _type == ValueType::String; }
     [[nodiscard]] bool isArray() const { return _type == ValueType::Array; }
+    [[nodiscard]] bool isObject() const { return _type == ValueType::Object; }
 
     [[nodiscard]] Bool asBool() const { return std::get<Bool>(_data); }
     [[nodiscard]] Integer asInteger() const { return std::get<Integer>(_data); }
@@ -54,14 +57,20 @@ public:
     [[nodiscard]] std::string asString() const;
     [[nodiscard]] const char* asCString() const;
 
-    // array
+    // array & object
     [[nodiscard]] size_t size() const;
     [[nodiscard]] bool empty() const;
+    void clear();
+
+    // array
     [[nodiscard]] Value& operator[](size_t index);
     [[nodiscard]] const Value& operator[](size_t index) const;
-    void clear();
     void resize(size_t size);
     void append(Value value);
+
+    // object
+    [[nodiscard]] Value& operator[](const std::string& key);
+    [[nodiscard]] const Value& operator[](const std::string& key) const;
 
 private:
     struct Null {};
@@ -86,6 +95,10 @@ private:
     [[nodiscard]] Array& asArray() { return *std::get<PArray>(_data); }
     [[nodiscard]] const Array& asArray() const {
         return *std::get<PArray>(_data);
+    }
+    [[nodiscard]] Object& asObject() { return *std::get<PObject>(_data); }
+    [[nodiscard]] const Object& asObject() const {
+        return *std::get<PObject>(_data);
     }
 
 private:

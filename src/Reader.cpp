@@ -75,9 +75,14 @@ Value Reader::parseValue() {
         case 'f':
             return parseLiteral("false", false);
         case '"':
-            return parseString();
+            if (auto res = parseString(); res != ParseResult::Ok) {
+                return error(res);
+            }
+            return Value(_strBuf);
         case '[':
             return parseArray();
+        case '{':
+            return parseObject();
         default:
             return parseNumber();
     }
@@ -174,7 +179,8 @@ Value Reader::parseReal(const char* const numberEnd) {
 }
 
 /// string = quotation-mark *char quotation-mark
-Value Reader::parseString() {
+/// @note if return Ok, value is in `_strBuf`
+ParseResult Reader::parseString() {
     assert(_pCur != nullptr);
     assert(*_pCur == '"');
     // string = quotation-mark *char quotation-mark
@@ -183,36 +189,32 @@ Value Reader::parseString() {
     // quotation-mark = %x22 ; "
     // unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
 
-    assert(_strBuf.empty());
-    _strBuf.clear();
-
     // quotation-mark
     ++_pCur;
 
+    _strBuf.clear();
     while (true) {
         const char c = *_pCur;
         if (c == '\0') {
             // end of document
-            return error(ParseResult::MissQuotationMark);
+            return ParseResult::MissQuotationMark;
         }
         if (static_cast<unsigned char>(c) < '\x20') {
             // invalid char
-            return error(ParseResult::InvalidStringChar);
+            return ParseResult::InvalidStringChar;
         }
 
         // c is valid char
         if (c == '"') {
             // end of string
             ++_pCur;
-            auto value = Value(_strBuf);
-            _strBuf.clear();
-            return value;
+            return ParseResult::Ok;
         }
         if (c == '\\') {
             // escaped
             const auto res = parseEscaped();
             if (res != ParseResult::Ok) {
-                return error(res);
+                return res;
             }
         } else {
             // unescaped
@@ -366,7 +368,7 @@ Value Reader::parseArray() {
     // '['
     ++_pCur;
 
-    auto value = Value(ValueType::Array);
+    auto array = Value(ValueType::Array);
     while (true) {
         skipWhitespace();
         const char c = *_pCur;
@@ -377,9 +379,9 @@ Value Reader::parseArray() {
         if (c == ']') {
             // end of array
             ++_pCur;
-            return value;
+            return array;
         }
-        if (!value.empty()) {
+        if (!array.empty()) {
             // expect comma
             if (c != ',') {
                 return error(ParseResult::MissComma);
@@ -392,7 +394,65 @@ Value Reader::parseArray() {
         if (!good()) {
             return Value();
         }
-        value.append(std::move(element));
+        array.append(std::move(element));
+    }
+    // never goto here
+}
+
+/// object = %x7B ws [ member *( ws %x2C ws member ) ] ws %x7D
+Value Reader::parseObject() {
+    assert(_pCur != nullptr);
+    assert(*_pCur == '{');
+
+    // '{'
+    ++_pCur;
+
+    auto object = Value(ValueType::Object);
+    while (true) {
+        skipWhitespace();
+        const char c = *_pCur;
+        if (c == '\0') {
+            // end of document
+            return error(ParseResult::MissCurlyBracket);
+        }
+        if (c == '}') {
+            // end of object
+            ++_pCur;
+            return object;
+        }
+        if (!object.empty()) {
+            // expect comma
+            if (c != ',') {
+                return error(ParseResult::MissComma);
+            }
+            ++_pCur;
+            skipWhitespace();
+        }
+
+        // member = string ws %x3A ws value
+        // parse key
+        if (*_pCur != '"') {
+            return error(ParseResult::MissKey);
+        }
+        if (auto res = parseString(); res != ParseResult::Ok) {
+            return error(res);
+        }
+        const auto key = _strBuf;
+
+        // ':'
+        skipWhitespace();
+        if (*_pCur != ':') {
+            return error(ParseResult::MissColon);
+        }
+        ++_pCur;
+        skipWhitespace();
+
+        // parse value
+        auto value = parseValue();
+        if (!good()) {
+            return Value();
+        }
+        object[key] = std::move(value);
     }
     // never goto here
 }
