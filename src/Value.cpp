@@ -4,7 +4,7 @@
 
 namespace SimpleJson {
 
-Value::Value(ValueType type) : _type(type) {
+Value::Value(ValueType type) {
     switch (type) {
         case ValueType::Null:
             _data = Null();
@@ -30,8 +30,8 @@ Value::Value(ValueType type) : _type(type) {
     }
 }
 
-Value::Value(const Value& other) : _type(other._type) {
-    switch (_type) {
+Value::Value(const Value& other) {
+    switch (other.type()) {
         case ValueType::Null:
             _data = Null();
             break;
@@ -48,12 +48,10 @@ Value::Value(const Value& other) : _type(other._type) {
             _data = String(other.asStringView());
             break;
         case ValueType::Array:
-            _data = std::make_unique<Array>();
-            this->asArray() = other.asArray();
+            _data = std::make_unique<Array>(other.asArray());
             break;
         case ValueType::Object:
-            _data = std::make_unique<Object>();
-            this->asObject() = other.asObject();
+            _data = std::make_unique<Object>(other.asObject());
             break;
     }
 }
@@ -64,8 +62,6 @@ Value& Value::operator=(Value other) {
 }
 
 void Value::swap(Value& other) {
-    using std::swap;
-    swap(_type, other._type);
     _data.swap(other._data);
 }
 
@@ -83,7 +79,7 @@ const char* Value::asCString() const {
 }
 
 size_t Value::size() const {
-    switch (_type) {
+    switch (this->type()) {
         case ValueType::Array:
             return this->asArray().size();
         case ValueType::Object:
@@ -94,7 +90,7 @@ size_t Value::size() const {
 }
 
 bool Value::empty() const {
-    switch (_type) {
+    switch (this->type()) {
         case ValueType::Null:
             return true;
         case ValueType::Array:

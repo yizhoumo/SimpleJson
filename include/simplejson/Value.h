@@ -22,13 +22,12 @@ public:
     // ctor
     Value() = default;
     explicit Value(ValueType type);
-    Value(Bool val) : _type(ValueType::Bool), _data(val) {}
-    Value(Integer val) : _type(ValueType::Integer), _data(val) {}
+    Value(Bool val) : _data(val) {}
+    Value(Integer val) : _data(val) {}
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     Value(T val) : Value(Integer(val)) {}
-    Value(Real val) : _type(ValueType::Real), _data(val) {}
-    Value(std::string_view str)
-        : _type(ValueType::String), _data(String(str)) {}
+    Value(Real val) : _data(val) {}
+    Value(std::string_view str) : _data(String(str)) {}
     Value(const char* str) : Value(std::string_view(str)) {}
     Value(const std::string& str) : Value(std::string_view(str)) {}
 
@@ -39,14 +38,30 @@ public:
     void swap(Value & other);
 
 public:
-    [[nodiscard]] ValueType type() const { return _type; }
-    [[nodiscard]] bool isNull() const { return _type == ValueType::Null; }
-    [[nodiscard]] bool isBool() const { return _type == ValueType::Bool; }
-    [[nodiscard]] bool isInteger() const { return _type == ValueType::Integer; }
-    [[nodiscard]] bool isReal() const { return _type == ValueType::Real; }
-    [[nodiscard]] bool isString() const { return _type == ValueType::String; }
-    [[nodiscard]] bool isArray() const { return _type == ValueType::Array; }
-    [[nodiscard]] bool isObject() const { return _type == ValueType::Object; }
+    [[nodiscard]] ValueType type() const {
+        return static_cast<ValueType>(_data.index());
+    }
+    [[nodiscard]] bool isNull() const {
+        return std::holds_alternative<Null>(_data);
+    }
+    [[nodiscard]] bool isBool() const {
+        return std::holds_alternative<Bool>(_data);
+    }
+    [[nodiscard]] bool isInteger() const {
+        return std::holds_alternative<Integer>(_data);
+    }
+    [[nodiscard]] bool isReal() const {
+        return std::holds_alternative<Real>(_data);
+    }
+    [[nodiscard]] bool isString() const {
+        return std::holds_alternative<String>(_data);
+    }
+    [[nodiscard]] bool isArray() const {
+        return std::holds_alternative<PArray>(_data);
+    }
+    [[nodiscard]] bool isObject() const {
+        return std::holds_alternative<PObject>(_data);
+    }
 
     [[nodiscard]] Bool asBool() const { return std::get<Bool>(_data); }
     [[nodiscard]] Integer asInteger() const { return std::get<Integer>(_data); }
@@ -102,8 +117,6 @@ private:
     }
 
 private:
-    // TODO: remove `_type`, which is included in `_data`
-    ValueType _type = ValueType::Null;
     std::variant<Null, Bool, Integer, Real, String, PArray, PObject> _data;
 };
 
