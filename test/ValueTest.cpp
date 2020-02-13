@@ -192,6 +192,9 @@ TEST(ValueTest, TypeObject) {
     val["this"] = val;
     EXPECT_EQ(ValueType::Null, val["null"].type());
 
+    const auto keys = val.getMemberNames();
+    EXPECT_EQ(5, keys.size());
+
     EXPECT_EQ(5, val.size());
     EXPECT_EQ(1, val["one"].asInteger());
     EXPECT_EQ(2.0, val["two"].asReal());

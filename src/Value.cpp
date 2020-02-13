@@ -134,6 +134,16 @@ const Value& Value::operator[](const std::string& key) const {
     return this->asObject().at(key);
 }
 
+std::vector<std::string> Value::getMemberNames() const {
+    const auto& object = this->asObject();
+    std::vector<std::string> res;
+    res.reserve(object.size());
+    for (const auto& pair : object) {
+        res.push_back(pair.first);
+    }
+    return res;
+}
+
 Value::String::String(std::string_view str) {
     if (str.empty()) {
         return;

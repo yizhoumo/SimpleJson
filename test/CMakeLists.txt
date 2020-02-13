@@ -29,6 +29,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 add_executable(simplejson_test
         ReaderTest.cpp
         ValueTest.cpp
+        WriterTest.cpp
         TestHelper.cpp
         )
 target_link_libraries(simplejson_test simplejson gtest_main)

@@ -79,10 +79,15 @@ TEST_F(ReaderTest, ParseRealNumber) {
 TEST_F(ReaderTest, ParseRealNumberEdgeCase) {
     // must underflow
     EXPECT_PARSE_REAL(0.0, "1E-10000");
-    // Min. subnormal positive double
+    // Smallest number > 1
+    EXPECT_PARSE_REAL(1.0000000000000002, "1.0000000000000002");
+    // Min. subnormal double
     EXPECT_PARSE_REAL(4.9406564584124654E-324, "  4.9406564584124654E-324");
     EXPECT_PARSE_REAL(-4.9406564584124654E-324, "-4.9406564584124654E-324");
-    // Min. normal positive double
+    // Max. subnormal double
+    EXPECT_PARSE_REAL(2.2250738585072009e-308, "  2.2250738585072009e-308");
+    EXPECT_PARSE_REAL(-2.2250738585072009e-308, "-2.2250738585072009e-308");
+    // Min. normal double
     EXPECT_PARSE_REAL(2.2250738585072014E-308, "  2.2250738585072014E-308");
     EXPECT_PARSE_REAL(-2.2250738585072014E-308, "-2.2250738585072014E-308");
     // Max. Double

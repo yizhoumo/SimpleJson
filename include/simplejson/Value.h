@@ -1,10 +1,10 @@
 #ifndef SIMPLEJSON_VALUE_H
 #define SIMPLEJSON_VALUE_H
 
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -86,11 +86,12 @@ public:
     // object
     [[nodiscard]] Value& operator[](const std::string& key);
     [[nodiscard]] const Value& operator[](const std::string& key) const;
+    [[nodiscard]] std::vector<std::string> getMemberNames() const;
 
 private:
     struct Null {};
     using Array = std::vector<Value>;
-    using Object = std::unordered_map<std::string, Value>;
+    using Object = std::map<std::string, Value>;
     using PArray = std::unique_ptr<Array>;
     using PObject = std::unique_ptr<Object>;
     class String {
