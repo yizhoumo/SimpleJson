@@ -38,11 +38,13 @@ void Writer::stringifyValue(const Value& root) {
 }
 
 void Writer::stringifyReal(const Real number) {
+    constexpr auto bufSize = 32;
+
     const auto currentLength = _strBuf.size();
-    _strBuf.resize(currentLength + 32);
+    _strBuf.resize(currentLength + bufSize);
 
     const auto pBuf = _strBuf.data() + currentLength;
-    const auto res = std::sprintf(pBuf, "%.17g", number);
+    const auto res = std::snprintf(pBuf, bufSize, "%.17g", number);
     if (res > 0) {
         _strBuf.resize(currentLength + res);
     } else {
