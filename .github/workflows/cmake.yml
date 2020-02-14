@@ -37,18 +37,9 @@ jobs:
       working-directory: build
       run: ctest
       continue-on-error: true
-    - name: Install lcov
-      run: |
-        sudo apt-get -qy update
-        sudo apt-get -qy install lcov
-    - name: Run lcov
-      run: |
-        lcov --directory build --capture -o coverage.info
-        lcov --remove coverage.info '/usr/*' '*/test/*' -o coverage.info
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: coverage.info
 
   clang_9_sanitizer:
     runs-on: ubuntu-latest
