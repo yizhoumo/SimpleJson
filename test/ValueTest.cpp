@@ -52,6 +52,8 @@ TEST(ValueTest, TypeInteger) {
 
     const auto other = val;
     EXPECT_EQ(val, other);
+    val = 1;
+    EXPECT_NE(val, other);
 }
 
 TEST(ValueTest, TypeIntegerSigned) {
@@ -106,6 +108,8 @@ TEST(ValueTest, TypeReal) {
 
     const auto other = val;
     EXPECT_EQ(val, other);
+    val = 1.0;
+    EXPECT_NE(val, other);
 
     EXPECT_VALUE_REAL(0.0);
     EXPECT_VALUE_REAL(1.0);
