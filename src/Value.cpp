@@ -65,6 +65,35 @@ void Value::swap(Value& other) {
     _data.swap(other._data);
 }
 
+bool Value::operator==(const Value& other) const {
+    if (this->type() != other.type()) {
+        return false;
+    }
+
+    switch (this->type()) {
+        case ValueType::Null:
+            return true;
+        case ValueType::Bool:
+            return this->asBool() == other.asBool();
+        case ValueType::Integer:
+            return this->asInteger() == other.asInteger();
+        case ValueType::Real:
+            return this->asReal() == other.asReal();
+        case ValueType::String:
+            return this->asStringView() == other.asStringView();
+        case ValueType::Array:
+            return this->asArray() == other.asArray();
+        case ValueType::Object:
+            return this->asObject() == other.asObject();
+    }
+    // never goto here
+    return false;
+}
+
+bool Value::operator!=(const Value& other) const {
+    return !(*this == other);
+}
+
 std::string_view Value::asStringView() const {
     return static_cast<std::string_view>(std::get<String>(_data));
 }
@@ -132,6 +161,22 @@ Value& Value::operator[](const std::string& key) {
 
 const Value& Value::operator[](const std::string& key) const {
     return this->asObject().at(key);
+}
+
+bool Value::isMember(const std::string& key) const {
+    return this->asObject().count(key) > 0;
+}
+
+Value Value::removeMember(const std::string& key) {
+    if (!this->isMember(key)) {
+        return Value();
+    }
+
+    auto& object = this->asObject();
+    auto res = Value(std::move(object.at(key)));
+    object.erase(key);
+
+    return res;
 }
 
 std::vector<std::string> Value::getMemberNames() const {

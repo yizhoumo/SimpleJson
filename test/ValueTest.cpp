@@ -194,6 +194,12 @@ TEST(ValueTest, TypeObject) {
 
     const auto keys = val.getMemberNames();
     EXPECT_EQ(5, keys.size());
+    EXPECT_TRUE(val.isMember("one"));
+    EXPECT_TRUE(val.isMember("two"));
+    EXPECT_TRUE(val.isMember("hello"));
+    EXPECT_TRUE(val.isMember("this"));
+    EXPECT_TRUE(val.isMember("null"));
+    EXPECT_FALSE(val.isMember("xxx"));
 
     EXPECT_EQ(5, val.size());
     EXPECT_EQ(1, val["one"].asInteger());
@@ -205,6 +211,9 @@ TEST(ValueTest, TypeObject) {
     EXPECT_EQ(1, val["this"]["one"].asInteger());
     EXPECT_EQ(2.0, val["this"]["two"].asReal());
     EXPECT_EQ("world", val["this"]["hello"].asStringView());
+
+    EXPECT_EQ("world", val.removeMember("hello").asStringView());
+    EXPECT_EQ(4, val.size());
 
     val.clear();
     EXPECT_TRUE(val.empty());

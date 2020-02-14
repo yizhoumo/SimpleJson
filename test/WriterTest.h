@@ -1,14 +1,17 @@
 #ifndef SIMPLEJSON_WRITERTEST_H
 #define SIMPLEJSON_WRITERTEST_H
 
-#define EXPECT_ROUNDTRIP(doc)                        \
-    do {                                             \
-        const auto expected = doc;                   \
-        Value root;                                  \
-        reader.parse(expected, root);                \
-        ASSERT_EQ(ParseResult::Ok, reader.result()); \
-        const auto actual = writer.write(root);      \
-        EXPECT_EQ(expected, actual);                 \
+#define ROUNDTRIP_TEST(doc)                                 \
+    do {                                                    \
+        const auto expectedDoc = doc;                       \
+        Value expectedValue;                                \
+        reader.parse(expectedDoc, expectedValue);           \
+        ASSERT_EQ(ParseResult::Ok, reader.result());        \
+        const auto actualDoc = writer.write(expectedValue); \
+        Value actualValue;                                  \
+        reader.parse(actualDoc, actualValue);               \
+        ASSERT_EQ(ParseResult::Ok, reader.result());        \
+        EXPECT_EQ(expectedValue, actualValue);              \
     } while (false)
 
 #endif  // SIMPLEJSON_WRITERTEST_H

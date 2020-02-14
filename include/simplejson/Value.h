@@ -37,6 +37,9 @@ public:
     Value& operator=(Value other);
     void swap(Value & other);
 
+    [[nodiscard]] bool operator==(const Value& other) const;
+    [[nodiscard]] bool operator!=(const Value& other) const;
+
 public:
     [[nodiscard]] ValueType type() const {
         return static_cast<ValueType>(_data.index());
@@ -86,6 +89,8 @@ public:
     // object
     [[nodiscard]] Value& operator[](const std::string& key);
     [[nodiscard]] const Value& operator[](const std::string& key) const;
+    [[nodiscard]] bool isMember(const std::string& key) const;
+    [[nodiscard]] Value removeMember(const std::string& key);
     [[nodiscard]] std::vector<std::string> getMemberNames() const;
 
 private:

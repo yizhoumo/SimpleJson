@@ -12,4 +12,7 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ValueType val);
 // for gtest to print SimpleJson::ParseResult
 std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val);
 
+// for gtest to print SimpleJson::Value
+std::ostream& operator<<(std::ostream& out, const SimpleJson::Value& val);
+
 #endif  // SIMPLEJSON_TESTHELPER_H

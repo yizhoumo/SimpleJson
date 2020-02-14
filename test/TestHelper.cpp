@@ -1,5 +1,7 @@
 #include "TestHelper.h"
 
+#include "simplejson/Writer.h"
+
 std::ostream& operator<<(std::ostream& out, SimpleJson::ValueType val) {
     switch (val) {
         case SimpleJson::ValueType::Null:
@@ -58,4 +60,9 @@ std::ostream& operator<<(std::ostream& out, SimpleJson::ParseResult val) {
 
     // not possible
     return out << "[N/A]";
+}
+
+std::ostream& operator<<(std::ostream& out, const SimpleJson::Value& val) {
+    SimpleJson::Writer writer;
+    return out << writer.write(val);
 }
