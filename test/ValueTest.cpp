@@ -12,30 +12,46 @@ namespace SimpleJson {
 
 TEST(ValueTest, TypeNull) {
     Value val(ValueType::Null);
+    EXPECT_TRUE(val.empty());
+    EXPECT_EQ(0, val.size());
     EXPECT_TRUE(val.isNull());
     EXPECT_EQ(ValueType::Null, val.type());
 
     val = Value();
     EXPECT_EQ(ValueType::Null, val.type());
+
+    const auto other = val;
+    EXPECT_EQ(val, other);
 }
 
 TEST(ValueTest, TypeBool) {
     Value val(ValueType::Bool);
+    EXPECT_FALSE(val.empty());
     EXPECT_TRUE(val.isBool());
     ASSERT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(false, val.asBool());
+
+    const auto other = val;
+    EXPECT_EQ(val, other);
 
     val = true;
     EXPECT_TRUE(val.isBool());
     ASSERT_EQ(ValueType::Bool, val.type());
     EXPECT_EQ(true, val.asBool());
+
+    EXPECT_NE(val, other);
+    EXPECT_NE(val, Value());
 }
 
 TEST(ValueTest, TypeInteger) {
     Value val(ValueType::Integer);
+    EXPECT_FALSE(val.empty());
     EXPECT_TRUE(val.isInteger());
     ASSERT_EQ(ValueType::Integer, val.type());
     EXPECT_EQ(0, val.asInteger());
+
+    const auto other = val;
+    EXPECT_EQ(val, other);
 }
 
 TEST(ValueTest, TypeIntegerSigned) {
@@ -83,9 +99,13 @@ TEST(ValueTest, TypeIntegerUnsigned) {
 
 TEST(ValueTest, TypeReal) {
     Value val(ValueType::Real);
+    EXPECT_FALSE(val.empty());
     EXPECT_TRUE(val.isReal());
     ASSERT_EQ(ValueType::Real, val.type());
     EXPECT_EQ(0.0, val.asReal());
+
+    const auto other = val;
+    EXPECT_EQ(val, other);
 
     EXPECT_VALUE_REAL(0.0);
     EXPECT_VALUE_REAL(1.0);
@@ -110,6 +130,7 @@ TEST(ValueTest, TypeReal) {
 
 TEST(ValueTest, TypeString) {
     Value val(ValueType::String);
+    EXPECT_FALSE(val.empty());
     EXPECT_TRUE(val.isString());
     ASSERT_EQ(ValueType::String, val.type());
     EXPECT_TRUE(val.asString().empty());
@@ -138,6 +159,9 @@ TEST(ValueTest, TypeString) {
     ASSERT_EQ(ValueType::String, val.type());
     EXPECT_EQ(str, val.asString());
     EXPECT_STREQ(str.data(), val.asCString());
+
+    const auto other = val;
+    EXPECT_EQ(val, other);
 }
 
 TEST(ValueTest, TypeArray) {
@@ -174,9 +198,13 @@ TEST(ValueTest, TypeArray) {
     EXPECT_EQ("hello", val[3][2].asStringView());
     EXPECT_EQ(ValueType::Null, val[4].type());
 
+    const auto other = val;
+    EXPECT_EQ(val, other);
+
     val.clear();
     EXPECT_TRUE(val.empty());
     EXPECT_EQ(0, val.size());
+    EXPECT_NE(val, other);
 }
 
 TEST(ValueTest, TypeObject) {
@@ -215,9 +243,13 @@ TEST(ValueTest, TypeObject) {
     EXPECT_EQ("world", val.removeMember("hello").asStringView());
     EXPECT_EQ(4, val.size());
 
+    const auto other = val;
+    EXPECT_EQ(val, other);
+
     val.clear();
     EXPECT_TRUE(val.empty());
     EXPECT_EQ(0, val.size());
+    EXPECT_NE(val, other);
 }
 
 }  // namespace SimpleJson
