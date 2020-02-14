@@ -37,8 +37,8 @@ public:
     Value& operator=(Value other);
     void swap(Value & other);
 
-    [[nodiscard]] bool operator==(const Value& other) const;
-    [[nodiscard]] bool operator!=(const Value& other) const;
+    friend bool operator==(const Value& lhs, const Value& rhs);
+    friend bool operator!=(const Value& lhs, const Value& rhs);
 
 public:
     [[nodiscard]] ValueType type() const {

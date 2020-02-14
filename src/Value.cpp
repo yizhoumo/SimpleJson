@@ -65,33 +65,33 @@ void Value::swap(Value& other) {
     _data.swap(other._data);
 }
 
-bool Value::operator==(const Value& other) const {
-    if (this->type() != other.type()) {
+bool operator==(const Value& lhs, const Value& rhs) {
+    if (lhs.type() != rhs.type()) {
         return false;
     }
 
-    switch (this->type()) {
+    switch (lhs.type()) {
         case ValueType::Null:
             return true;
         case ValueType::Bool:
-            return this->asBool() == other.asBool();
+            return lhs.asBool() == rhs.asBool();
         case ValueType::Integer:
-            return this->asInteger() == other.asInteger();
+            return lhs.asInteger() == rhs.asInteger();
         case ValueType::Real:
-            return this->asReal() == other.asReal();
+            return lhs.asReal() == rhs.asReal();
         case ValueType::String:
-            return this->asStringView() == other.asStringView();
+            return lhs.asStringView() == rhs.asStringView();
         case ValueType::Array:
-            return this->asArray() == other.asArray();
+            return lhs.asArray() == rhs.asArray();
         case ValueType::Object:
-            return this->asObject() == other.asObject();
+            return lhs.asObject() == rhs.asObject();
     }
     // never goto here
     return false;
 }
 
-bool Value::operator!=(const Value& other) const {
-    return !(*this == other);
+bool operator!=(const Value& lhs, const Value& rhs) {
+    return !(lhs == rhs);
 }
 
 std::string_view Value::asStringView() const {
