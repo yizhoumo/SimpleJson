@@ -49,6 +49,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.info
+        fail_ci_if_error: true
 
   clang_9_sanitizer:
     runs-on: ubuntu-latest
